@@ -70,16 +70,21 @@ MultiSet MultiSet::set_inter(const MultiSet& B) const{ // пересечение
     return R;
 }
 
-MultiSet MultiSet::set_diff(const MultiSet& B) const{ // разность
+MultiSet MultiSet::set_diff(const MultiSet& B) const{
     MultiSet R;
     for (const auto& p : m){
-        Count v = p.second - B.get(p.first);
-        if (v > 0) R.m[p.first] = v;
+        long long v = static_cast<long long>(p.second) - B.get(p.first);
+        if (v > 0){
+            R.m[p.first] = static_cast<Count>(v);
+        } else {
+            R.m[p.first] = -2; // ошибка: отрицательная кратность невозможна
+        }
     }
     return R;
 }
 
-MultiSet MultiSet::set_symdiff(const MultiSet& B) const{ // симметрическая разность
+
+MultiSet MultiSet::set_symdiff(const MultiSet& B) const{
     MultiSet R;
     set<Code> keys;
     for (const auto& p : m) keys.insert(p.first);
