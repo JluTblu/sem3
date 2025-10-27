@@ -21,8 +21,8 @@ public:
     void print(const string& title = "") const;
     MultiSet set_union(const MultiSet& B) const; // объединение
     MultiSet set_inter(const MultiSet& B) const; // пересечение
-    MultiSet set_diff(const MultiSet& B) const; // разность
-    MultiSet set_symdiff(const MultiSet& B) const; // симметрическая разность
+    MultiSet set_diff(const GrayUniverse& U, const MultiSet& B) const; // разность
+    MultiSet set_symdiff(const GrayUniverse& U, const MultiSet& B) const; // симметрическая разность
     MultiSet add(const MultiSet& B) const; // поэлементная сумма
     MultiSet sub(const MultiSet& B) const;// поэлементная разность
     MultiSet mul(const MultiSet& B) const;// поэлементное умножение

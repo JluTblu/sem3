@@ -78,9 +78,9 @@ int main(){
             B.print("B");
             A.set_union(B).print("Объединение (max)");
             A.set_inter(B).print("Пересечение (min)");
-            A.set_diff(B).print("A - B");
-            B.set_diff(A).print("B - A");
-            A.set_symdiff(B).print("Симметрическая разность");
+            A.set_diff(U, B).print("A - B");
+            B.set_diff(U, A).print("B - A");
+            A.set_symdiff(U, B).print("Симметрическая разность");
             MultiSet::complement(U, A).print("Дополнение U\\A");
             MultiSet::complement(U, B).print("Дополнение U\\B");
             A.add(B).print("Арифметическая сумма (a+b)");

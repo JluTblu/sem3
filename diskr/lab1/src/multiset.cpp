@@ -70,29 +70,17 @@ MultiSet MultiSet::set_inter(const MultiSet& B) const{ // пересечение
     return R;
 }
 
-MultiSet MultiSet::set_diff(const MultiSet& B) const{
-    MultiSet R;
-    for (const auto& p : m){
-        long long v = static_cast<long long>(p.second) - B.get(p.first);
-        if (v > 0){
-            R.m[p.first] = static_cast<Count>(v);
-        } else {
-            R.m[p.first] = -2; // ошибка: отрицательная кратность невозможна
-        }
-    }
+
+MultiSet MultiSet::set_diff(const GrayUniverse& U, const MultiSet& B) const {
+    MultiSet B_complement = complement(U, B); // дополнение B
+    MultiSet R = this->set_inter(B_complement); // А пересечение с не B
     return R;
 }
 
-
-MultiSet MultiSet::set_symdiff(const MultiSet& B) const{
-    MultiSet R;
-    set<Code> keys;
-    for (const auto& p : m) keys.insert(p.first);
-    for (const auto& p : B.m) keys.insert(p.first);
-    for (const auto& k : keys){
-        Count v = abs(static_cast<long long>(this->get(k)) - B.get(k));
-        if (v > 0) R.m[k] = v;
-    }
+MultiSet MultiSet::set_symdiff(const GrayUniverse& U, const MultiSet& B) const{
+    MultiSet unionSet = this->set_union(B); // A ∪ B
+    MultiSet interSet = this->set_inter(B); // A ∩ B
+    MultiSet R = unionSet.set_diff(U, interSet); // (A ∪ B) \ (A ∩ B)
     return R;
 }
 
@@ -123,10 +111,8 @@ MultiSet MultiSet::sub(const MultiSet& B) const {
         }
         // если v == 0, не добавляем
     }
-
     return R;
 }
-
 
 MultiSet MultiSet::mul(const MultiSet& B) const{ // поэлементное умножение
     MultiSet R;
@@ -160,11 +146,11 @@ MultiSet MultiSet::div(const MultiSet& B) const {
 }
 
 
-MultiSet MultiSet::complement(const GrayUniverse& U, const MultiSet& A) {
+MultiSet MultiSet::complement(const GrayUniverse& U, const MultiSet& A){
     MultiSet R;
-    for (const auto& [code, count] : U.all()) {
+    for (const auto& [code, count] : U.all()){
         Count inA = A.get(code);
-        if (inA < count) {
+        if (inA < count){
             R.m[code] = count - inA; // добавляем недостающую часть
         }
     }
