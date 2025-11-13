@@ -1,4 +1,5 @@
 #include "ellipseItem.h"
+#include "another.h"
 
 ellipseItem::ellipseItem(const QRectF &rect) : QGraphicsEllipseItem(rect){
     setFlags(ItemIsMovable | ItemIsSelectable);
@@ -6,7 +7,7 @@ ellipseItem::ellipseItem(const QRectF &rect) : QGraphicsEllipseItem(rect){
 }
 
 void ellipseItem::mousePressEvent(QGraphicsSceneMouseEvent *event){
-    setZValue(zValue() + 1);
+    setZValue(++zCounter);
     QGraphicsEllipseItem::mousePressEvent(event);
 }
 

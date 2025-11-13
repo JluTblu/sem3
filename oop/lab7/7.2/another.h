@@ -5,6 +5,9 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QMouseEvent>
+
+extern int zCounter;
 
 class myWidgets : public QWidget{
     Q_OBJECT
@@ -21,12 +24,14 @@ public slots:
 
 private:
     QList<QGraphicsItem*> addedItems;
-    
+    QPointF lastClickPos; // x, y
+
     QGraphicsScene *scene;
     QGraphicsView *view;
     QPushButton *btnAddRect;
     QPushButton *btnAddEllipse;
     QPushButton *btnAddTriangle;
     QPushButton *btnDelete;
-    int zCounter = 0;
+protected:
+    void mousePressEvent(QMouseEvent *event);
 };

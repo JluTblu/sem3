@@ -1,4 +1,5 @@
 #include "rectangleItem.h"
+#include "another.h"
 
 rectangleItem::rectangleItem(const QRectF &rect) : QGraphicsRectItem(rect){
     setFlags(ItemIsMovable | ItemIsSelectable);
@@ -6,7 +7,7 @@ rectangleItem::rectangleItem(const QRectF &rect) : QGraphicsRectItem(rect){
 }
 
 void rectangleItem::mousePressEvent(QGraphicsSceneMouseEvent *event){
-    setZValue(zValue() + 1);
+    setZValue(++zCounter);
     QGraphicsRectItem::mousePressEvent(event);
 }
 

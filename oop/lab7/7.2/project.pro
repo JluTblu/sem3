@@ -1,6 +1,6 @@
 QT += core gui widgets
 
-TARGET = myWidgets
+TARGET = lab7.2
 TEMPLATE = app
 
 SOURCES += \

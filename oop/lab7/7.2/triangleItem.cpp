@@ -1,4 +1,5 @@
 #include "triangleItem.h"
+#include "another.h"
 
 triangleItem::triangleItem(const QPolygonF &polygon) : QGraphicsPolygonItem(polygon){
     setFlags(ItemIsMovable | ItemIsSelectable);
@@ -6,7 +7,7 @@ triangleItem::triangleItem(const QPolygonF &polygon) : QGraphicsPolygonItem(poly
 }
 
 void triangleItem::mousePressEvent(QGraphicsSceneMouseEvent *event){
-    setZValue(zValue() + 1);
+    setZValue(++zCounter);
     QGraphicsPolygonItem::mousePressEvent(event);
 }
 

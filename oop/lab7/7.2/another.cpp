@@ -2,6 +2,9 @@
 #include "rectangleItem.h"
 #include "ellipseItem.h"
 #include "triangleItem.h"
+#include <QRandomGenerator>
+
+int zCounter = 0;
 
 myWidgets::myWidgets(QWidget *parent) : QWidget(parent){
     scene = new QGraphicsScene(this);
@@ -32,15 +35,19 @@ myWidgets::myWidgets(QWidget *parent) : QWidget(parent){
 
 myWidgets::~myWidgets(){}
 
+void myWidgets::mousePressEvent(QMouseEvent *event){ // добавил
+    lastClickPos = view->mapToScene(event->pos());
+}
+
 void myWidgets::addRectangle(){
-    auto *item = new rectangleItem(QRectF(0, 0, 100, 60));
+    rectangleItem *item = new rectangleItem(QRectF(lastClickPos.x() - 50, lastClickPos.y() - 30, 100, 60));
     item->setZValue(++zCounter);
     scene->addItem(item);
     addedItems.append(item);
 }
 
 void myWidgets::addEllipse(){
-    auto *item = new ellipseItem(QRectF(0, 0, 120, 60));
+    auto *item = new ellipseItem(QRectF(lastClickPos.x() - 60, lastClickPos.y() - 30, 120, 60));
     item->setZValue(++zCounter);
     scene->addItem(item);
     addedItems.append(item);
@@ -48,7 +55,8 @@ void myWidgets::addEllipse(){
 
 void myWidgets::addTriangle(){
     QPolygonF triangle;
-    triangle << QPointF(0, 60) << QPointF(50, 0) << QPointF(100, 60);
+    // triangle << QPointF(0, 60) << QPointF(50, 0) << QPointF(100, 60);
+    triangle << QPointF(lastClickPos.x() - 50, lastClickPos.y() + 30) << QPointF(lastClickPos.x(), lastClickPos.y() - 30) << QPointF(lastClickPos.x() + 50, lastClickPos.y() + 30); //правый угол
     triangleItem *item = new triangleItem(triangle);
     item->setZValue(++zCounter);
     scene->addItem(item);
@@ -58,7 +66,7 @@ void myWidgets::addTriangle(){
 void myWidgets::deleteSelected(){
     QList<QGraphicsItem*> selected = scene->selectedItems();
 
-    if (!selected.isEmpty()) {
+    if (!selected.isEmpty()){
         for (auto *item : selected){
             scene->removeItem(item);
             addedItems.removeOne(item);
