@@ -7,7 +7,7 @@
 class Canvas : public QWidget{
     Q_OBJECT
 public:
-    explicit Canvas(QWidget *parent = nullptr);
+    explicit Canvas(QWidget *parent = nullptr); // конструктор самостоятельный виджет
 
 public slots:
     void addRectangle();

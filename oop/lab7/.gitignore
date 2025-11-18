@@ -1,0 +1,31 @@
+# Build / intermediate files
+*.o
+*.obj
+*.exe
+*.a
+*.so
+*.dll
+*.dylib
+*.out
+*.log
+*.tmp
+Makefile
+Makefile.Debug
+Makefile.Release
+
+# Qt generated files
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# Qt Creator / qmake
+*.pro.user
+*.pro.user.*
+*.qmake.stash
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+

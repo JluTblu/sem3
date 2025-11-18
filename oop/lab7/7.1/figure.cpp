@@ -5,14 +5,14 @@ Figure::Figure(Type type, const QRect &rect, const QColor &color) : type(type), 
 void Figure::draw(QPainter *painter) const{
     painter->setBrush(color);
 
-    switch (type) {
+    switch (type){
     case Rectangle:
         painter->drawRect(rect);
         break;
     case Ellipse:
         painter->drawEllipse(rect);
         break;
-    case Triangle: {
+    case Triangle:{
         QPolygon triangle;
         QPoint top(rect.center().x(), rect.top());
         QPoint left(rect.left(), rect.bottom());
@@ -25,7 +25,7 @@ void Figure::draw(QPainter *painter) const{
 }
 
 bool Figure::contains(const QPoint &p) const{
-    if (type == Triangle) {
+    if (type == Triangle){
         QPolygon triangle;
         QPoint top(rect.center().x(), rect.top());
         QPoint left(rect.left(), rect.bottom());

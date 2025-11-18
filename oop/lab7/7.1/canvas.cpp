@@ -7,7 +7,7 @@ Canvas::Canvas(QWidget *parent) : QWidget(parent){
 }
 
 void Canvas::addRectangle(){
-    auto *f = new Figure(Figure::Rectangle, QRect(50, 50, 120, 80), QColor("lightblue"));
+    Figure *f = new Figure(Figure::Rectangle, QRect(50, 50, 120, 80), QColor("lightblue"));
     figures.append(f);
     update();
 }
@@ -19,7 +19,7 @@ void Canvas::addEllipse(){
 }
 
 void Canvas::addTriangle(){
-    auto *f = new Figure(Figure::Triangle, QRect(250, 80, 100, 100), QColor("khaki"));
+    auto *f = new Figure(Figure::Triangle, QRect(250, 80, 100, 100), QColor("red"));
     figures.append(f);
     update();
 }
@@ -37,25 +37,23 @@ void Canvas::deleteActive(){
 }
 
 void Canvas::paintEvent(QPaintEvent *){
-    QPainter p(this);
+    QPainter p(this); // рисуем именно на текущем виджете
     for (Figure *f : figures)
         f->draw(&p);
-
-    if (active){
-        p.setBrush(Qt::NoBrush);
-        p.setPen(Qt::red);
-        p.drawRect(active->getRect());
-    }
+    // if (active){
+    //     p.setPen(Qt::red);
+    //     p.drawRect(active->getRect());
+    // }
 }
 
 void Canvas::mousePressEvent(QMouseEvent *event){
     for (int i = figures.size() - 1; i >= 0; --i){
         Figure *f = figures[i];
-        if (f->contains(event->pos())){
+        if (f->contains(event->pos())){ // попали ли курсором по фигуре
             active = f;
-            dragOffset = event->pos() - f->getRect().topLeft();
+            dragOffset = event->pos() - f->getRect().topLeft(); // сохраняем смещение относительно угла фигуры
             figures.removeAt(i); // поднимаем активную фигуру наверх
-            figures.append(f);
+            figures.append(f); // сначала удаляя ее из списка, а после добавляя в конец
             update();
             return;
         }
@@ -74,5 +72,5 @@ void Canvas::mouseMoveEvent(QMouseEvent *event){
 }
 
 void Canvas::mouseReleaseEvent(QMouseEvent *){
-    dragOffset = QPoint();
+    dragOffset = QPoint(); // сбрасываем в ноль, не перетаскиваем ничего
 }
