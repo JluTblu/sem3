@@ -24,5 +24,6 @@ protected:
 private:
     QList<Figure*> figures;
     Figure *active = nullptr;
-    QPoint dragOffset;
+    QPoint newPos;
+    QPoint lastClickPos;
 };
