@@ -44,7 +44,8 @@ template <> constexpr inline auto PhoneBook::qt_create_metaobjectdata<qt_meta_ta
         "",
         "editContact",
         "deleteContact",
-        "searchContacts",
+        "searchByColumn",
+        "column",
         "saveToFile",
         "loadFromFile"
     };
@@ -56,12 +57,14 @@ template <> constexpr inline auto PhoneBook::qt_create_metaobjectdata<qt_meta_ta
         QtMocHelpers::SlotData<void()>(3, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'deleteContact'
         QtMocHelpers::SlotData<void()>(4, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'searchContacts'
-        QtMocHelpers::SlotData<void()>(5, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'searchByColumn'
+        QtMocHelpers::SlotData<void(int)>(5, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::Int, 6 },
+        }}),
         // Slot 'saveToFile'
-        QtMocHelpers::SlotData<void()>(6, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'loadFromFile'
         QtMocHelpers::SlotData<void()>(7, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'loadFromFile'
+        QtMocHelpers::SlotData<void()>(8, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -88,13 +91,12 @@ void PhoneBook::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, v
         case 0: _t->addContact(); break;
         case 1: _t->editContact(); break;
         case 2: _t->deleteContact(); break;
-        case 3: _t->searchContacts(); break;
+        case 3: _t->searchByColumn((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
         case 4: _t->saveToFile(); break;
         case 5: _t->loadFromFile(); break;
         default: ;
         }
     }
-    (void)_a;
 }
 
 const QMetaObject *PhoneBook::metaObject() const

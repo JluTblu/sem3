@@ -8,9 +8,11 @@
 #include <QFile>
 #include <QTextStream>
 #include <QHeaderView>
+#include <QDir>
+#include <QComboBox>
 
 PhoneBook::PhoneBook(QWidget *parent) : QWidget(parent){
-    filename = "phonebook.txt";
+    filename = QDir::homePath() + "/phonebook.txt";
     
     setWindowTitle("Телефонный справочник");
     setMinimumSize(800, 600);
@@ -25,8 +27,31 @@ PhoneBook::PhoneBook(QWidget *parent) : QWidget(parent){
     searchLayout->addWidget(searchEdit);
     mainLayout->addLayout(searchLayout);
     
+    // поиск по выбранному полю
+    QComboBox *fieldCombo = new QComboBox(this); // выпадающий список для выбора поля
+    fieldCombo->addItem("Фамилия", 0);
+    fieldCombo->addItem("Имя", 1);
+    fieldCombo->addItem("Отчество", 2);
+    fieldCombo->addItem("Адрес", 3);
+    fieldCombo->addItem("Дата рождения", 4);
+    fieldCombo->addItem("Email", 5);
+    fieldCombo->addItem("Телефоны", 6);
+
+    searchLayout->addWidget(searchLabel);
+    searchLayout->addWidget(searchEdit);
+    searchLayout->addWidget(fieldCombo);
+    mainLayout->addLayout(searchLayout);
+
+    // подключаем поиск по выбранному полю
+    connect(searchEdit, &QLineEdit::textChanged, this, [this, fieldCombo](){
+    int column = fieldCombo->currentData().toInt();
+        searchByColumn(column);
+});
+
     // Таблица
     table = new QTableWidget(this);
+    // добавил
+    table->setSelectionMode(QAbstractItemView::SingleSelection); // исключительно выбор одного (Запрещение множественного выделения)
     table->setColumnCount(7);
     QStringList headers;
     headers << "Фамилия" << "Имя" << "Отчество" << "Адрес" 
@@ -58,7 +83,6 @@ PhoneBook::PhoneBook(QWidget *parent) : QWidget(parent){
     connect(deleteButton, &QPushButton::clicked, this, &PhoneBook::deleteContact);
     connect(saveButton, &QPushButton::clicked, this, &PhoneBook::saveToFile);
     connect(loadButton, &QPushButton::clicked, this, &PhoneBook::loadFromFile);
-    connect(searchEdit, &QLineEdit::textChanged, this, &PhoneBook::searchContacts);
     
     // Загрузка данных
     loadFromFile();
@@ -80,14 +104,16 @@ void PhoneBook::editContact(){
         return;
     }
     
+    int index = table->item(row, 0)->data(Qt::UserRole).toInt(); // запоминание индекса
     ContactDialog dialog(this);
-    dialog.setContact(contacts[row]);
-    
+    dialog.setContact(contacts[index]); // добавил (1 правка)
+
     if (dialog.exec() == QDialog::Accepted){
-        contacts[row] = dialog.getContact();
+        contacts[index] = dialog.getContact();
         updateTable();
     }
 }
+
 
 void PhoneBook::deleteContact(){
     int row = table->currentRow();
@@ -102,7 +128,8 @@ void PhoneBook::deleteContact(){
                                   QMessageBox::Yes | QMessageBox::No);
     
     if (reply == QMessageBox::Yes){
-        contacts.removeAt(row);
+        int index = table->item(row, 0)->data(Qt::UserRole).toInt(); // добавил также как в editContacts (1 правка)
+        contacts.removeAt(index);
         updateTable();
     }
 }
@@ -110,11 +137,13 @@ void PhoneBook::deleteContact(){
 void PhoneBook::updateTable(){
     table->setSortingEnabled(false);
     table->setRowCount(contacts.size());
-    
-    for (int i = 0; i < contacts.size(); i++){
-        const Contact &c = contacts[i];
-        
-        table->setItem(i, 0, new QTableWidgetItem(c.getLastName()));
+
+    for (int i = 0; i < contacts.size(); i++){ // каждого контакта (1 правка)
+        const Contact &c = contacts[i]; // сохраняем индекс контакта в UserRole
+        QTableWidgetItem *lastNameItem = new QTableWidgetItem(c.getLastName());
+        lastNameItem->setData(Qt::UserRole, i);
+        table->setItem(i, 0, lastNameItem);
+
         table->setItem(i, 1, new QTableWidgetItem(c.getFirstName()));
         table->setItem(i, 2, new QTableWidgetItem(c.getMiddleName()));
         table->setItem(i, 3, new QTableWidgetItem(c.getAddress()));
@@ -122,26 +151,7 @@ void PhoneBook::updateTable(){
         table->setItem(i, 5, new QTableWidgetItem(c.getEmail()));
         table->setItem(i, 6, new QTableWidgetItem(c.getPhones().join(", ")));
     }
-    
     table->setSortingEnabled(true);
-}
-
-void PhoneBook::searchContacts(){
-    QString searchText = searchEdit->text().toLower();
-    
-    for (int i = 0; i < table->rowCount(); i++){
-        bool found = false;
-        
-        for (int j = 0; j < table->columnCount(); j++){
-            QTableWidgetItem *item = table->item(i, j);
-            if (item && item->text().toLower().contains(searchText)){
-                found = true;
-                break;
-            }
-        }
-        
-        table->setRowHidden(i, !found);
-    }
 }
 
 void PhoneBook::saveToFile(){
@@ -182,4 +192,55 @@ void PhoneBook::loadFromFile(){
     
     file.close();
     updateTable();
+}
+
+void PhoneBook::searchByColumn(int column)
+{
+    QString text = searchEdit->text().trimmed().toLower();
+    
+    if(text.isEmpty()){
+        for(int i=0; i<table->rowCount(); i++)
+            table->setRowHidden(i, false);
+        return;
+    }
+    
+    for(int i=0; i<table->rowCount(); i++){
+        bool found = false;
+        
+        if(column >= 0 && column < 6){
+            if(table->item(i, column) && table->item(i, column)->text().toLower().contains(text)) {
+                found = true;
+            }
+        } 
+        else if(column == 6){
+            if(table->item(i, 6)){
+                QString phones = table->item(i, 6)->text().toLower();
+                QStringList phoneList = phones.split(",", Qt::SkipEmptyParts);
+                
+                for(const QString &phone : phoneList){
+                    if(phone.trimmed().contains(text)){
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        } else {
+            for(int j=0; j<7; j++){
+                if(j == 6){
+                    if(table->item(i, 6)){
+                        QString phones = table->item(i, 6)->text().toLower();
+                        QStringList phoneList = phones.split(",", Qt::SkipEmptyParts);
+                        
+                        for(const QString &phone : phoneList){
+                            if(phone.trimmed().contains(text)){
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        table->setRowHidden(i, !found);
+    }
 }

@@ -6,7 +6,7 @@
 #include <QRegularExpression>
 #include <QDate>
 
-ContactDialog::ContactDialog(QWidget *parent) : QDialog(parent) {
+ContactDialog::ContactDialog(QWidget *parent) : QDialog(parent){
     setWindowTitle("Добавить/Редактировать контакт");
     setMinimumWidth(400);
     
@@ -45,91 +45,110 @@ ContactDialog::ContactDialog(QWidget *parent) : QDialog(parent) {
     connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
 }
 
-bool ContactDialog::validateName(const QString &name, const QString &fieldName) {
+bool ContactDialog::validateName(const QString &name, const QString &fieldName){
     QString trimmed = name.trimmed();
-    
-    if (trimmed.isEmpty()) {
+
+    if (trimmed.isEmpty()){
         QMessageBox::warning(this, "Ошибка", fieldName + " не может быть пустым");
         return false;
     }
-    
-    if (!trimmed[0].isUpper()) {
+
+    if (!trimmed[0].isUpper()){
         QMessageBox::warning(this, "Ошибка", fieldName + " должно начинаться с заглавной буквы");
         return false;
     }
-    
-    if (trimmed.startsWith('-') || trimmed.endsWith('-')) {
+
+    if (trimmed.startsWith('-') || trimmed.endsWith('-')){
         QMessageBox::warning(this, "Ошибка", fieldName + " не может начинаться или заканчиваться на дефис");
         return false;
     }
-    
+
     QRegularExpression nameRegex("^[\\p{L}\\d\\s-]+$");
-    if (!nameRegex.match(trimmed).hasMatch()) {
+    if (!nameRegex.match(trimmed).hasMatch()){
         QMessageBox::warning(this, "Ошибка", fieldName + " может содержать только буквы, цифры, дефис и пробел");
         return false;
     }
-    
+
+    QString normalized = trimmed.left(1).toUpper() + trimmed.mid(1).toLower(); // первая буква заглавная, остальные строчные (2 правка)
+    if (normalized != trimmed){
+        QMessageBox::warning(this, "Ошибка", fieldName + " должно быть в формате: Первая заглавная, остальные маленькие");
+        return false;
+    }
     return true;
 }
 
-bool ContactDialog::validateEmail(const QString &email) {
+bool ContactDialog::validateEmail(const QString &email){
     QString trimmed = email.trimmed();
     trimmed.remove(' ');
     
-    if (trimmed.isEmpty()) {
+    if (trimmed.isEmpty()){
         QMessageBox::warning(this, "Ошибка", "Email не может быть пустым");
         return false;
     }
     
     QRegularExpression emailRegex("^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z0-9]+$");
-    if (!emailRegex.match(trimmed).hasMatch()) {
+    if (!emailRegex.match(trimmed).hasMatch()){
         QMessageBox::warning(this, "Ошибка", "Неверный формат email");
         return false;
     }
-    
     return true;
 }
 
-QString ContactDialog::normalizePhone(const QString &phone) const {
+QString ContactDialog::normalizePhone(const QString &phone) const{
     QString result;
-    for (QChar c : phone) {
-        if (c.isDigit() || c == '+') {
+    for (QChar c : phone){
+        if (c.isDigit() || c == '+'){
             result += c;
         }
     }
     return result;
 }
 
-bool ContactDialog::validatePhones(const QString &phones) {
-    if (phones.trimmed().isEmpty()) {
+bool ContactDialog::validatePhones(const QString &phones){
+    if (phones.trimmed().isEmpty()){
         QMessageBox::warning(this, "Ошибка", "Необходимо указать хотя бы один телефон");
+        return false;
+    }
+
+    if (phones.contains('(') || phones.contains(')')){ // (3 правка)
+        QMessageBox::warning(this, "Ошибка", "Некорректный ввод, телефон не должен содержать скобок");
         return false;
     }
     
     QStringList phoneList = phones.split(',');
-    for (const QString &phone : phoneList) {
+    for (const QString &phone : phoneList){
         QString normalized = normalizePhone(phone.trimmed());
-        if (normalized.length() < 10) {
+        if (normalized.length() < 10){
             QMessageBox::warning(this, "Ошибка", "Телефон слишком короткий: " + phone);
             return false;
         }
+    }
+    return true;
+}
+
+bool ContactDialog::validateAddress(const QString &address){
+    QString trimmed = address.trimmed();
+    
+    if (trimmed.contains('|')){
+        QMessageBox::warning(this, "Ошибка", "Адрес не может содержать символ '|'");
+        return false;
     }
     
     return true;
 }
 
-void ContactDialog::validateAndAccept() {
+void ContactDialog::validateAndAccept(){
     if (!validateName(lastNameEdit->text(), "Фамилия")) return;
     if (!validateName(firstNameEdit->text(), "Имя")) return;
-    if (!middleNameEdit->text().trimmed().isEmpty() && 
-        !validateName(middleNameEdit->text(), "Отчество")) return;
+    if (!middleNameEdit->text().trimmed().isEmpty() && !validateName(middleNameEdit->text(), "Отчество")) return;
+    if (!validateAddress(addressEdit->text())) return;
     if (!validateEmail(emailEdit->text())) return;
     if (!validatePhones(phonesEdit->text())) return;
     
     accept();
 }
 
-Contact ContactDialog::getContact() const {
+Contact ContactDialog::getContact() const{
     Contact contact;
     contact.setLastName(lastNameEdit->text().trimmed());
     contact.setFirstName(firstNameEdit->text().trimmed());
@@ -143,7 +162,7 @@ Contact ContactDialog::getContact() const {
     
     QStringList phoneList = phonesEdit->text().split(',');
     QStringList normalizedPhones;
-    for (const QString &phone : phoneList) {
+    for (const QString &phone : phoneList){
         normalizedPhones.append(normalizePhone(phone.trimmed()));
     }
     contact.setPhones(normalizedPhones);
@@ -151,7 +170,7 @@ Contact ContactDialog::getContact() const {
     return contact;
 }
 
-void ContactDialog::setContact(const Contact &contact) {
+void ContactDialog::setContact(const Contact &contact){
     lastNameEdit->setText(contact.getLastName());
     firstNameEdit->setText(contact.getFirstName());
     middleNameEdit->setText(contact.getMiddleName());

@@ -20,6 +20,7 @@ private:
     bool validateName(const QString &name, const QString &fieldName);
     bool validateEmail(const QString &email);
     bool validatePhones(const QString &phones);
+    bool validateAddress(const QString &address);
     QString normalizePhone(const QString &phone) const;
     
 private slots:

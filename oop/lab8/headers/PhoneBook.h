@@ -21,7 +21,7 @@ private slots:
     void addContact();
     void editContact();
     void deleteContact();
-    void searchContacts();
+    void searchByColumn(int column);
     void saveToFile();
     void loadFromFile();
     
