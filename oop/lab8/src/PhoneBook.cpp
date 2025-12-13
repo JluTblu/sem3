@@ -194,8 +194,7 @@ void PhoneBook::loadFromFile(){
     updateTable();
 }
 
-void PhoneBook::searchByColumn(int column)
-{
+void PhoneBook::searchByColumn(int column){
     QString text = searchEdit->text().trimmed().toLower();
     
     if(text.isEmpty()){
@@ -211,8 +210,7 @@ void PhoneBook::searchByColumn(int column)
             if(table->item(i, column) && table->item(i, column)->text().toLower().contains(text)) {
                 found = true;
             }
-        } 
-        else if(column == 6){
+        } else {
             if(table->item(i, 6)){
                 QString phones = table->item(i, 6)->text().toLower();
                 QStringList phoneList = phones.split(",", Qt::SkipEmptyParts);
@@ -224,23 +222,7 @@ void PhoneBook::searchByColumn(int column)
                     }
                 }
             }
-        } else {
-            for(int j=0; j<7; j++){
-                if(j == 6){
-                    if(table->item(i, 6)){
-                        QString phones = table->item(i, 6)->text().toLower();
-                        QStringList phoneList = phones.split(",", Qt::SkipEmptyParts);
-                        
-                        for(const QString &phone : phoneList){
-                            if(phone.trimmed().contains(text)){
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        } 
         table->setRowHidden(i, !found);
     }
 }

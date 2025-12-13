@@ -1,0 +1,594 @@
+\section{Реализация}
+
+\subsection{Архитектура приложения}
+
+Приложение построено с использованием объектно-ориентированного подхода и разделения ответственности между компонентами. Структура проекта организована следующим образом: в директории \texttt{headers} располагаются заголовочные файлы классов: Contact.h для структуры данных контакта, ContactDialog.h для диалогового окна редактирования и PhoneBook.h для главного окна приложения. Директория \texttt{src} содержит файлы реализации соответствующих классов, а также файл main.cpp с точкой входа в программу. Файл project.pro описывает конфигурацию проекта для системы сборки qmake.
+
+Архитектура приложения включает несколько ключевых компонентов. Класс Contact представляет собой модель данных для хранения информации об одном контакте. Класс PhoneBook является главным окном приложения и содержит таблицу для отображения всех контактов, а также кнопки управления. Класс ContactDialog реализует диалоговое окно для добавления и редактирования контактов с полной валидацией вводимых данных.
+
+\subsection{Описание классов}
+
+\subsubsection{Класс Contact}
+
+Класс Contact инкапсулирует данные одного контакта. Он содержит приватные поля для хранения фамилии, имени, отчества, адреса, даты рождения, email и списка телефонов. Для каждого поля предоставлены геттеры и сеттеры, обеспечивающие контролируемый доступ к данным.
+
+Конструктор по умолчанию инициализирует дату рождения текущей датой. Метод toString преобразует объект контакта в строковое представление для сохранения в файл, используя символ вертикальной черты как разделитель полей. Статический метод fromString выполняет обратную операцию, создавая объект Contact из строки.\\
+
+\begin{lstlisting}[language=C++, caption=Класс Contact]
+Contact::Contact(){
+    birthDate = QDate::currentDate();
+}
+
+QString Contact::getLastName() const{ return lastName; }
+QString Contact::getFirstName() const{ return firstName; }
+QString Contact::getMiddleName() const{ return middleName; }
+QString Contact::getAddress() const{ return address; }
+QDate Contact::getBirthDate() const{ return birthDate; }
+QString Contact::getEmail() const{ return email; }
+QStringList Contact::getPhones() const{ return phones; }
+
+void Contact::setLastName(const QString &value){ lastName = value; }
+void Contact::setFirstName(const QString &value){ firstName = value; }
+void Contact::setMiddleName(const QString &value){ middleName = value; }
+void Contact::setAddress(const QString &value){ address = value; }
+void Contact::setBirthDate(const QDate &value){ birthDate = value; }
+void Contact::setEmail(const QString &value){ email = value; }
+void Contact::setPhones(const QStringList &value){ phones = value; }
+
+QString Contact::toString() const{
+    return lastName + "|" + firstName + "|" + middleName + "|" + 
+    address + "|" + birthDate.toString("yyyy-MM-dd") + "|" + 
+    email + "|" + phones.join(",");
+}
+
+Contact Contact::fromString(const QString &str){
+    Contact contact;
+    QStringList parts = str.split('|');
+    
+    if (parts.size() == 7){
+        contact.setLastName(parts[0]);
+        contact.setFirstName(parts[1]);
+        contact.setMiddleName(parts[2]);
+        contact.setAddress(parts[3]);
+        contact.setBirthDate(QDate::fromString(parts[4], "yyyy-MM-dd"));
+        contact.setEmail(parts[5]);
+        contact.setPhones(parts[6].split(','));
+    }
+    return contact;
+}
+\end{lstlisting}
+
+\subsubsection{Класс ContactDialog}
+
+Класс \texttt{ContactDialog} наследуется от \texttt{QDialog} и реализует диалоговое окно для ввода и редактирования данных контакта. Конструктор создает форму с использованием \texttt{QFormLayout}, добавляя все необходимые поля ввода.
+
+Для каждого типа данных используется соответствующий виджет. Поля имени, фамилии, отчества, адреса и email представлены объектами \texttt{QLineEdit}. Для даты рождения используется \texttt{QDateEdit} с всплывающим календарем. Поле телефонов принимает несколько номеров, разделенных запятыми. \\
+
+\begin{lstlisting}[language=C++, caption=Конструктор ContactDialog]
+ContactDialog::ContactDialog(QWidget *parent) : QDialog(parent){
+    setWindowTitle("Добавить/Редактировать контакт");
+    setMinimumWidth(400);
+    
+    QFormLayout *layout = new QFormLayout(this);
+    
+    lastNameEdit = new QLineEdit(this);
+    firstNameEdit = new QLineEdit(this);
+    middleNameEdit = new QLineEdit(this);
+    addressEdit = new QLineEdit(this);
+    birthDateEdit = new QDateEdit(this);
+    birthDateEdit->setCalendarPopup(true);
+    birthDateEdit->setDate(QDate::currentDate().addYears(-20));
+    birthDateEdit->setMaximumDate(QDate::currentDate().addDays(-1));
+    
+    emailEdit = new QLineEdit(this);
+    phonesEdit = new QLineEdit(this);
+    phonesEdit->setPlaceholderText("Введите телефоны через запятую");
+    
+    layout->addRow("Фамилия:", lastNameEdit);
+    layout->addRow("Имя:", firstNameEdit);
+    layout->addRow("Отчество:", middleNameEdit);
+    layout->addRow("Адрес:", addressEdit);
+    layout->addRow("Дата рождения:", birthDateEdit);
+    layout->addRow("Email:", emailEdit);
+    layout->addRow("Телефоны:", phonesEdit);
+    
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    QPushButton *okButton = new QPushButton("OK", this);
+    QPushButton *cancelButton = new QPushButton("Отмена", this);
+    
+    buttonLayout->addWidget(okButton);
+    buttonLayout->addWidget(cancelButton);
+    layout->addRow(buttonLayout);
+    
+    connect(okButton, &QPushButton::clicked, this, &ContactDialog::validateAndAccept);
+    connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+}
+\end{lstlisting}
+
+\subsubsection{Класс PhoneBook}
+
+Класс PhoneBook представляет главное окно приложения и наследуется от QWidget. Класс управляет списком контактов и обеспечивает их отображение в таблице. \\
+
+\begin{lstlisting}[language=C++, caption=Класс PhoneBook]
+    class PhoneBook : public QWidget{
+    Q_OBJECT
+    
+private:
+    QTableWidget *table;
+    QLineEdit *searchEdit;
+    QList<Contact> contacts;
+    QString filename;
+    
+    void updateTable();
+    
+private slots:
+    void addContact();
+    void editContact();
+    void deleteContact();
+    void searchByColumn(int column);
+    void saveToFile();
+    void loadFromFile();
+    
+public:
+    PhoneBook(QWidget *parent = nullptr);
+};
+\end{lstlisting}
+
+\textbf{Приватные поля:}
+\begin{itemize}
+    \item QTableWidget *table — таблица для отображения контактов;
+    \item QLineEdit *searchEdit — поле ввода поискового запроса;
+    \item QList<Contact> contacts — список всех контактов;
+    \item QString filename — имя файла для сохранения данных.
+\end{itemize}
+
+\textbf{Приватные методы:}
+
+void updateTable() — обновляет отображение таблицы после изменений в списке контактов. Временно отключает сортировку через setSortingEnabled(false), устанавливает количество строк равным размеру списка, заполняет каждую ячейку данными контакта, сохраняет индекс контакта в UserRole первой ячейки строки, включает сортировку обратно. \\
+
+\begin{lstlisting}[language=C++, caption=Метод обновления таблицы]
+void PhoneBook::updateTable(){
+    table->setSortingEnabled(false);
+    table->setRowCount(contacts.size());
+
+    for (int i = 0; i < contacts.size(); i++){
+        const Contact &c = contacts[i];
+        QTableWidgetItem *lastNameItem = new QTableWidgetItem(c.getLastName());
+        lastNameItem->setData(Qt::UserRole, i);
+        table->setItem(i, 0, lastNameItem);
+
+        table->setItem(i, 1, new QTableWidgetItem(c.getFirstName()));
+        table->setItem(i, 2, new QTableWidgetItem(c.getMiddleName()));
+        table->setItem(i, 3, new QTableWidgetItem(c.getAddress()));
+        table->setItem(i, 4, new QTableWidgetItem(c.getBirthDate().toString("dd.MM.yyyy")));
+        table->setItem(i, 5, new QTableWidgetItem(c.getEmail()));
+        table->setItem(i, 6, new QTableWidgetItem(c.getPhones().join(", ")));
+    }
+    table->setSortingEnabled(true);
+}
+\end{lstlisting}
+
+\textbf{Приватные слоты:}
+
+void addContact() — создает экземпляр диалога ContactDialog, открывает его, при подтверждении получает данные через getContact(), добавляет контакт в список и обновляет таблицу. \\
+
+\begin{lstlisting}[language=C++, caption=Метод добавления контакта]
+void PhoneBook::addContact(){
+    ContactDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted){
+        Contact contact = dialog.getContact();
+        contacts.append(contact);
+        updateTable();
+    }
+}
+\end{lstlisting}
+
+void editContact() — получает номер выбранной строки, проверяет наличие выбора, извлекает реальный индекс контакта из UserRole (учитываем то, что могла быть использована сортировка, и после этого нужно чтобы редактировался выбранный контакт), открывает диалог с предзаполненными данными через setContact(), при подтверждении обновляет контакт в списке. \\
+
+\begin{lstlisting}[language=C++, caption=Метод редактирования контакта]
+void PhoneBook::editContact(){
+    int row = table->currentRow();
+    if (row < 0){
+        QMessageBox::warning(this, "Ошибка", "Выберите контакт для редактирования");
+        return;
+    }
+    
+    int index = table->item(row, 0)->data(Qt::UserRole).toInt();
+    ContactDialog dialog(this);
+    dialog.setContact(contacts[index]);
+
+    if (dialog.exec() == QDialog::Accepted){
+        contacts[index] = dialog.getContact();
+        updateTable();
+    }
+}
+\end{lstlisting}
+
+void deleteContact() — получает номер выбранной строки, запрашивает подтверждение через QMessageBox::question, при подтверждении извлекает индекс из UserRole (учитываем то, что могла быть использована сортировка и нужно чтобы при удалении удалялся именно выбранный контакт), удаляет контакт через removeAt() и обновляет таблицу. \\
+
+\begin{lstlisting}[language=C++, caption=Метод удаления контакта]
+void PhoneBook::deleteContact(){
+    int row = table->currentRow();
+    if (row < 0){
+        QMessageBox::warning(this, "Ошибка", "Выберите контакт для удаления");
+        return;
+    }
+    
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Подтверждение", 
+                                  "Удалить выбранный контакт?",
+                                  QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes){
+        int index = table->item(row, 0)->data(Qt::UserRole).toInt();
+        contacts.removeAt(index);
+        updateTable();
+    }
+}
+\end{lstlisting}
+
+void searchByColumn(int column) — получает текст запроса, преобразует в нижний регистр, для каждой строки таблицы проверяет наличие текста в указанном столбце или во всех столбцах, для поля телефонов разделяет список и проверяет каждый номер отдельно, скрывает или показывает строку через setRowHidden(). \\
+
+\begin{lstlisting}[language=C++, caption=Метод поиска по выбранному столбцу]
+void PhoneBook::searchByColumn(int column){
+    QString text = searchEdit->text().trimmed().toLower();
+    
+    if(text.isEmpty()){
+        for(int i=0; i<table->rowCount(); i++)
+            table->setRowHidden(i, false);
+        return;
+    }
+    
+    for(int i=0; i<table->rowCount(); i++){
+        bool found = false;
+        
+        if(column >= 0 && column < 6){
+            if(table->item(i, column) && table->item(i, column)->text().toLower().contains(text)){
+                found = true;
+            }
+        } else {
+            if(table->item(i, 6)){
+                QString phones = table->item(i, 6)->text().toLower();
+                QStringList phoneList = phones.split(",", Qt::SkipEmptyParts);
+                
+                for(const QString &phone : phoneList){
+                    if(phone.trimmed().contains(text)){
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        } 
+        table->setRowHidden(i, !found);
+    }
+}
+\end{lstlisting}
+
+void saveToFile() — открывает файл в режиме записи, создает QTextStream с кодировкой UTF-8, для каждого контакта записывает строковое представление через toString(), закрывает файл и выводит сообщение об успехе. \\
+
+\begin{lstlisting}[language=C++, caption=Метод сохранения в файл]
+void PhoneBook::saveToFile(){
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+        QMessageBox::warning(this, "Ошибка", "Не удалось открыть файл для записи");
+        return;
+    }
+    
+    QTextStream out(&file);
+    out.setEncoding(QStringConverter::Utf8);
+    
+    for (const Contact &c : contacts){
+        out << c.toString() << "\n";
+    }
+    
+    file.close();
+    QMessageBox::information(this, "Успех", "Данные сохранены");
+}
+\end{lstlisting}
+
+void loadFromFile() — открывает файл в режиме чтения, очищает текущий список, создает QTextStream с кодировкой UTF-8, читает строки до конца файла, для каждой строки создает контакт через fromString(), проверяет корректность парсинга, добавляет контакт в список и обновляет таблицу. \\
+
+\begin{lstlisting}[language=C++, caption=Метод загрузки из файла]
+void PhoneBook::loadFromFile(){
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return;
+    }
+    
+    contacts.clear();
+    QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
+    
+    while (!in.atEnd()){
+        QString line = in.readLine();
+        Contact contact = Contact::fromString(line);
+        if (!contact.getLastName().isEmpty()){
+            contacts.append(contact);
+        }
+    }
+    
+    file.close();
+    updateTable();
+}
+\end{lstlisting}
+
+\textbf{Конструктор PhoneBook(QWidget *parent):} \\
+
+Конструктор инициализирует главное окно приложения. Устанавливает путь к файлу как <<домашняя\_директория/phonebook.txt>> через QDir::homePath(). Устанавливает заголовок окна и минимальный размер 800×600 пикселей.
+
+Создает вертикальный layout. Формирует панель поиска с меткой, полем ввода и выпадающим списком для выбора поля. Заполняет QComboBox семью полями с соответствующими индексами от 0 до 6. 
+
+Создает таблицу QTableWidget с семью столбцами. Устанавливает заголовки столбцов. Включает автоматическую сортировку и растягивание последнего столбца.
+
+Создает панель кнопок с пятью кнопками управления. \\
+
+\begin{lstlisting}[caption=Конструктор класса PhoneBook]
+PhoneBook::PhoneBook(QWidget *parent) : QWidget(parent){
+    filename = QDir::homePath() + "/phonebook.txt";
+    
+    setWindowTitle("Телефонный справочник");
+    setMinimumSize(800, 600);
+    
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    
+    QHBoxLayout *searchLayout = new QHBoxLayout();
+    QLabel *searchLabel = new QLabel("Поиск:", this);
+    searchEdit = new QLineEdit(this);
+    searchLayout->addWidget(searchLabel);
+    searchLayout->addWidget(searchEdit);
+    mainLayout->addLayout(searchLayout);
+    
+    QComboBox *fieldCombo = new QComboBox(this);
+    fieldCombo->addItem("Фамилия", 0);
+    fieldCombo->addItem("Имя", 1);
+    fieldCombo->addItem("Отчество", 2);
+    fieldCombo->addItem("Адрес", 3);
+    fieldCombo->addItem("Дата рождения", 4);
+    fieldCombo->addItem("Email", 5);
+    fieldCombo->addItem("Телефоны", 6);
+
+    searchLayout->addWidget(searchLabel);
+    searchLayout->addWidget(searchEdit);
+    searchLayout->addWidget(fieldCombo);
+    mainLayout->addLayout(searchLayout);
+
+    connect(searchEdit, &QLineEdit::textChanged, this, [this, fieldCombo](){
+    int column = fieldCombo->currentData().toInt();
+        searchByColumn(column);
+});
+
+    table = new QTableWidget(this);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->setColumnCount(7);
+    QStringList headers;
+    headers << "Фамилия" << "Имя" << "Отчество" << "Адрес" 
+            << "Дата рождения" << "Email" << "Телефоны";
+    table->setHorizontalHeaderLabels(headers);
+    table->horizontalHeader()->setStretchLastSection(true);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSortingEnabled(true);
+    mainLayout->addWidget(table);
+    
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    QPushButton *addButton = new QPushButton("Добавить", this);
+    QPushButton *editButton = new QPushButton("Редактировать", this);
+    QPushButton *deleteButton = new QPushButton("Удалить", this);
+    QPushButton *saveButton = new QPushButton("Сохранить", this);
+    QPushButton *loadButton = new QPushButton("Загрузить", this);
+    
+    buttonLayout->addWidget(addButton);
+    buttonLayout->addWidget(editButton);
+    buttonLayout->addWidget(deleteButton);
+    buttonLayout->addWidget(saveButton);
+    buttonLayout->addWidget(loadButton);
+    mainLayout->addLayout(buttonLayout);
+    
+    connect(addButton, &QPushButton::clicked, this, &PhoneBook::addContact);
+    connect(editButton, &QPushButton::clicked, this, &PhoneBook::editContact);
+    connect(deleteButton, &QPushButton::clicked, this, &PhoneBook::deleteContact);
+    connect(saveButton, &QPushButton::clicked, this, &PhoneBook::saveToFile);
+    connect(loadButton, &QPushButton::clicked, this, &PhoneBook::loadFromFile);
+    
+    loadFromFile();
+}
+\end{lstlisting}
+
+\textbf{Механизм сигналов и слотов:}
+
+В конструкторе PhoneBook все сигналы пользовательского интерфейса связываются с соответствующими слотами через функцию connect. Нажатие кнопки «Добавить» связано со слотом addContact(), кнопки «Редактировать» — с editContact(), кнопки «Удаление» — с deleteContact(). Кнопки сохранения и загрузки связаны с соответствующими слотами saveToFile() и loadFromFile(). Изменение текста в поле поиска автоматически вызывает слот searchByColumn() через лямбда-функцию, которая получает индекс выбранного поля из выпадающего списка.
+
+\subsection{Валидация данных}
+
+Валидация данных реализована в отдельных методах.
+
+\subsubsection{Валидация имени, фамилии и отчества контакта}
+
+Метод \texttt{validateName} выполняет комплексную проверку строки, представляющей имя, фамилию или отчество контакта. Метод принимает два параметра: саму строку для проверки и название поля (например, "lastName"), которое используется в сообщениях об ошибках.
+
+Логика валидации включает следующие проверки: проверка на пустоту -- удаление лишних пробелов и проверка на пустую строку, проверка первой буквы -- первый символ должен быть заглавной буквой, проверка позиций дефиса -- строка не должна начинаться или заканчиваться дефисом, проверка допустимых символов -- разрешены буквы, цифры, пробелы и дефисы, проверка регистра -- формат "Первая заглавная, остальные строчные". \\
+
+\textbf{Особенности регулярного выражения \texttt{nameRegex}:} \\
+
+Регулярное выражение \verb|"^[\\p{L}\\d\\s-]+$"| содержит следующие компоненты:
+\begin{itemize}
+  \item \verb|^| — начало строки (anchor start);
+  \item \verb|[\\p{L}\\d\\s-]| — символьный класс, разрешающий:
+    \begin{enumerate}
+      \item \verb|\\p{L}| — любые буквы из всех языков;
+      \item \verb|\\d| — цифры (0–9);
+      \item \verb|\\s| — пробельные символы (пробел, табуляция, перенос строки и др.);
+      \item \verb|-| — дефис.
+    \end{enumerate}
+  \item \verb|+| — один или более символов из указанного класса (квантификатор);
+  \item \verb|$| — конец строки (anchor end).
+\end{itemize}
+
+Это выражение гарантирует, что строка содержит только допустимые символы и не имеет нежелательных символов в начале или конце. Все проверки выполняются последовательно, и при обнаружении первой ошибки метод возвращает \texttt{false} с выводом соответствующего сообщения через \texttt{QMessageBox::warning}. \\
+
+\begin{lstlisting}[language=C++, caption=Валидация имени, фамилии или отчества]
+bool ContactDialog::validateName(const QString &name, const QString &fieldName){
+    QString trimmed = name.trimmed();
+
+    if (trimmed.isEmpty()){
+        QMessageBox::warning(this, "Ошибка", fieldName + " не может быть пустым");
+        return false;
+    }
+
+    if (!trimmed[0].isUpper()){
+        QMessageBox::warning(this, "Ошибка", fieldName + " должно начинаться с заглавной буквы");
+        return false;
+    }
+
+    if (trimmed.startsWith('-') || trimmed.endsWith('-')){
+        QMessageBox::warning(this, "Ошибка", fieldName + " не может начинаться или заканчиваться на дефис");
+        return false;
+    }
+
+    QRegularExpression nameRegex("^[\\p{L}\\d\\s-]+$");
+    if (!nameRegex.match(trimmed).hasMatch()){
+        QMessageBox::warning(this, "Ошибка", fieldName + " может содержать только буквы, цифры, дефис и пробел");
+        return false;
+    }
+
+    QString normalized = trimmed.left(1).toUpper() + trimmed.mid(1).toLower(); // первая буква заглавная, остальные строчные (2 правка)
+    if (normalized != trimmed){
+        QMessageBox::warning(this, "Ошибка", fieldName + " должно быть в формате: Первая заглавная, остальные маленькие");
+        return false;
+    }
+    return true;
+}
+\end{lstlisting}
+
+\subsubsection{Валидация адреса электронной почты}
+
+Метод \texttt{validateEmail} выполняет проверку строки, представляющей адрес электронной почты. Метод принимает один параметр — строку для проверки. Логика валидации включает следующие шаги: удаление пробелов в начале и конце строки, удаление всех внутренних пробелов, проверка на пустую строку, проверка соответствия регулярному выражению, описывающему структуру адреса электронной почты. В случае несоответствия выводится сообщение об ошибке через \texttt{QMessageBox::warning}.
+\\
+
+\textbf{Особенности регулярного выражения \texttt{emailRegex}:} \\
+
+Регулярное выражение \verb|"^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z0-9]+$"| содержит следующие компоненты:
+\begin{itemize}
+  \item \verb|^| — начало строки (anchor start);
+  \item \verb|[a-zA-Z0-9]+| — одна или более латинских букв и цифр для локальной части адреса;
+  \item \verb|@| — обязательный символ «собака», разделяющий локальную часть и домен;
+  \item \verb|[a-zA-Z0-9]+| — одна или более латинских букв и цифр для имени домена;
+  \item \verb|\\.| — обязательная точка, разделяющая домен и зону;
+  \item \verb|[a-zA-Z0-9]+| — одна или более латинских букв и цифр для доменной зоны (например, <<com>>, <<ru>>);
+  \item \verb|$| — конец строки (anchor end).
+\end{itemize}
+
+Это выражение гарантирует, что адрес электронной почты имеет базовую структуру вида \texttt{имя@домен.зона}, где каждая часть состоит только из латинских букв и цифр. Все проверки выполняются последовательно, и при обнаружении первой ошибки метод возвращает \texttt{false} с выводом соответствующего сообщения через \texttt{QMessageBox::warning}. \\
+
+\begin{lstlisting}[language=C++, caption=Валидация email]
+bool ContactDialog::validateEmail(const QString &email){
+    QString trimmed = email.trimmed();
+    trimmed.remove(' ');
+    
+    if (trimmed.isEmpty()){
+        QMessageBox::warning(this, "Ошибка", "Email не может быть пустым");
+        return false;
+    }
+    
+    QRegularExpression emailRegex("^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z0-9]+$");
+    if (!emailRegex.match(trimmed).hasMatch()){
+        QMessageBox::warning(this, "Ошибка", "Неверный формат email");
+        return false;
+    }
+    return true;
+}
+\end{lstlisting}
+
+\subsubsection{Валидация номера телефона}
+
+Метод \texttt{validatePhones} выполняет проверку строки, представляющей один или несколько телефонных номеров. Метод принимает один параметр — строку для проверки. Логика валидации включает следующие шаги: проверка на пустую строку, проверка отсутствия скобок, разделение строки на список номеров по запятой, нормализация каждого номера до последовательности цифр и символа «+», проверка минимальной длины нормализованного номера. При обнаружении ошибки выводится сообщение через \texttt{QMessageBox::warning}.
+\\
+
+\textbf{Особенности вспомогательной функции \texttt{normalizePhone}:} \\
+
+Функция \verb|normalizePhone| проходит по каждому символу исходной строки и формирует новую строку, содержащую только цифры и символ «+». Это гарантирует, что дальнейшая проверка выполняется по унифицированному формату, исключающему пробелы, дефисы и другие символы. \\
+
+\begin{lstlisting}[language=C++, caption=Вспомогательная функция нормализация телефона]
+QString ContactDialog::normalizePhone(const QString &phone) const{
+    QString result;
+    for (QChar c : phone){
+        if (c.isDigit() || c == '+'){
+            result += c;
+        }
+    }
+    return result;
+}
+\end{lstlisting}
+
+\textbf{Особенности проверки в методе \texttt{validatePhones}:} \\
+
+Проверка включает:
+\begin{itemize}
+  \item \verb|phones.trimmed().isEmpty()| — строка не должна быть пустой;
+  \item \verb|phones.contains('(') || phones.contains(')')| — номера не должны содержать скобки;
+  \item \verb|phones.split(',')| — поддержка нескольких номеров, разделённых запятой;
+  \item \verb|normalizePhone(phone.trimmed())| — нормализация каждого номера;
+  \item \verb|normalized.length() < 10| — минимальная длина номера должна быть не менее 10 символов.
+\end{itemize}
+
+\begin{lstlisting}[language=C++, caption=Валидация номера телефона]
+bool ContactDialog::validatePhones(const QString &phones){
+    if (phones.trimmed().isEmpty()){
+        QMessageBox::warning(this, "Ошибка", "Необходимо указать хотя бы один телефон");
+        return false;
+    }
+
+    if (phones.contains('(') || phones.contains(')')){
+        QMessageBox::warning(this, "Ошибка", "Некорректный ввод, телефон не должен содержать скобок");
+        return false;
+    }
+    
+    QStringList phoneList = phones.split(',');
+    for (const QString &phone : phoneList){
+        QString normalized = normalizePhone(phone.trimmed());
+        if (normalized.length() < 10){
+            QMessageBox::warning(this, "Ошибка", "Телефон слишком короткий: " + phone);
+            return false;
+        }
+    }
+    return true;
+}
+\end{lstlisting}
+
+\subsubsection{Валидация адреса}
+
+Метод \texttt{validateAddress} выполняет проверку строки, представляющей адрес контакта. Метод принимает один параметр — строку для проверки. Логика валидации включает следующие шаги: удаление пробелов в начале и конце строки, проверка на наличие запрещённого символа «|». В случае обнаружения символа выводится сообщение об ошибке через \texttt{QMessageBox::warning}, и метод возвращает \texttt{false}. Если ошибок не найдено, метод возвращает \texttt{true}.
+\\
+
+\begin{lstlisting}[language=C++, caption=Валидация адреса]
+bool ContactDialog::validateAddress(const QString &address){
+    QString trimmed = address.trimmed();
+    
+    if (trimmed.contains('|')){
+        QMessageBox::warning(this, "Ошибка", "Адрес не может содержать символ '|'");
+        return false;
+    }
+    return true;
+}
+\end{lstlisting}
+
+\subsubsection{Комплексная проверка и подтверждение данных}
+
+Метод \texttt{validateAndAccept} выполняет последовательную проверку всех полей формы контакта. Метод не принимает параметров, а обращается к значениям элементов интерфейса. Логика работы включает следующие шаги:
+проверка фамилии через \texttt{validateName}, проверка имени через \texttt{validateName}, проверка отчества (если поле не пустое) через \texttt{validateName}, проверка адреса через \texttt{validateAddress}, проверка электронной почты через \texttt{validateEmail}, проверка телефонов через \texttt{validatePhones}.
+
+Если хотя бы одна проверка возвращает \texttt{false}, метод завершает выполнение без сохранения данных. Если все проверки пройдены успешно, вызывается метод \texttt{accept()}, который закрывает диалоговое окно и подтверждает ввод данных.
+\\
+
+\begin{lstlisting}[language=C++, caption=Комплексная проверка и подтверждение]
+void ContactDialog::validateAndAccept(){
+    if (!validateName(lastNameEdit->text(), "Фамилия")) return;
+    if (!validateName(firstNameEdit->text(), "Имя")) return;
+    if (!middleNameEdit->text().trimmed().isEmpty() && !validateName(middleNameEdit->text(), "Отчество")) return;
+    if (!validateAddress(addressEdit->text())) return;
+    if (!validateEmail(emailEdit->text())) return;
+    if (!validatePhones(phonesEdit->text())) return;
+    
+    accept();
+}
+\end{lstlisting}
+

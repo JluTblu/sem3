@@ -1,0 +1,60 @@
+\babel@toc {russian}{}\relax 
+\contentsline {section}{\numberline {1}Введение}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Фреймворк Qt}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Предметная область}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Цель работы}{3}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Постановка задачи}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Требования к хранимым данным}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Функциональные требования}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Требования к валидации данных}{5}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Требования к пользовательскому интерфейсу}{6}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Реализация}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Архитектура приложения}{7}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Описание классов}{7}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Класс Contact}{7}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Класс ContactDialog}{8}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Класс PhoneBook}{10}{subsubsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.3}Валидация данных}{17}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Валидация имени, фамилии и отчества контакта}{17}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Валидация адреса электронной почты}{19}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Валидация номера телефона}{20}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Валидация адреса}{22}{subsubsection.3.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.5}Комплексная проверка и подтверждение данных}{22}{subsubsection.3.3.5}%
+\contentsline {section}{\numberline {4}Тестирование приложения}{24}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Начальное состояние приложения}{24}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Добавление нового контакта}{24}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Валидация некорректных данных}{25}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Некорректное имя}{25}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Некорректный email}{26}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}Некорректный телефон}{27}{subsubsection.4.3.3}%
+\contentsline {subsubsection}{\numberline {4.3.4}fieldName с дефисом в начале}{28}{subsubsection.4.3.4}%
+\contentsline {subsection}{\numberline {4.4}Редактирование существующего контакта}{28}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Удаление контакта}{29}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Поиск контактов}{30}{subsection.4.6}%
+\contentsline {subsubsection}{\numberline {4.6.1}Поиск по фамилии}{30}{subsubsection.4.6.1}%
+\contentsline {subsubsection}{\numberline {4.6.2}Поиск по email}{31}{subsubsection.4.6.2}%
+\contentsline {subsubsection}{\numberline {4.6.3}Поиск по телефону}{31}{subsubsection.4.6.3}%
+\contentsline {subsubsection}{\numberline {4.6.4}Очистка поиска}{32}{subsubsection.4.6.4}%
+\contentsline {subsection}{\numberline {4.7}Сортировка данных}{32}{subsection.4.7}%
+\contentsline {subsubsection}{\numberline {4.7.1}Сортировка по фамилии}{32}{subsubsection.4.7.1}%
+\contentsline {subsubsection}{\numberline {4.7.2}Сортировка по дате рождения}{33}{subsubsection.4.7.2}%
+\contentsline {subsubsection}{\numberline {4.7.3}Сортировка по email}{34}{subsubsection.4.7.3}%
+\contentsline {subsection}{\numberline {4.8}Работа с файлами}{34}{subsection.4.8}%
+\contentsline {subsubsection}{\numberline {4.8.1}Автоматическая загрузка при запуске}{34}{subsubsection.4.8.1}%
+\contentsline {subsubsection}{\numberline {4.8.2}Автоматическое сохранение после изменений}{34}{subsubsection.4.8.2}%
+\contentsline {subsubsection}{\numberline {4.8.3}Ручное сохранение}{35}{subsubsection.4.8.3}%
+\contentsline {subsubsection}{\numberline {4.8.4}Ручная загрузка}{35}{subsubsection.4.8.4}%
+\contentsline {subsection}{\numberline {4.9}Использование календаря для выбора даты}{36}{subsection.4.9}%
+\contentsline {subsection}{\numberline {4.10}Тестирование регулярных выражений}{36}{subsection.4.10}%
+\contentsline {subsubsection}{\numberline {4.10.1}Тестирование валидации имени}{36}{subsubsection.4.10.1}%
+\contentsline {subsubsection}{\numberline {4.10.2}Тестирование валидации email}{37}{subsubsection.4.10.2}%
+\contentsline {subsubsection}{\numberline {4.10.3}Тестирование валидации телефона}{37}{subsubsection.4.10.3}%
+\contentsline {subsubsection}{\numberline {4.10.4}Тестирование валидации даты}{37}{subsubsection.4.10.4}%
+\contentsline {subsection}{\numberline {4.11}Результаты тестирования}{37}{subsection.4.11}%
+\contentsline {subsubsection}{\numberline {4.11.1}Функциональность операций}{37}{subsubsection.4.11.1}%
+\contentsline {subsubsection}{\numberline {4.11.2}Валидация данных}{37}{subsubsection.4.11.2}%
+\contentsline {subsubsection}{\numberline {4.11.3}Поиск и фильтрация}{38}{subsubsection.4.11.3}%
+\contentsline {subsubsection}{\numberline {4.11.4}Сортировка}{38}{subsubsection.4.11.4}%
+\contentsline {subsubsection}{\numberline {4.11.5}Работа с файлами}{38}{subsubsection.4.11.5}%
+\contentsline {subsubsection}{\numberline {4.11.6}Интерфейс}{38}{subsubsection.4.11.6}%
+\contentsline {section}{\numberline {5}Список использованных источников}{39}{section.5}%
