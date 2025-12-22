@@ -37,11 +37,6 @@ public:
     BigFiniteNumber operator*(const BigFiniteNumber& other) const;
     std::pair<BigFiniteNumber, BigFiniteNumber> divide(const BigFiniteNumber& other) const;
     
-    // Дополнительные операции
-    BigFiniteNumber power(const BigFiniteNumber& exp) const;
-    static BigFiniteNumber gcd(const BigFiniteNumber& a, const BigFiniteNumber& b);
-    static BigFiniteNumber lcm(const BigFiniteNumber& a, const BigFiniteNumber& b);
-    
     std::string get_value() const { return value; }
     bool get_is_negative() const { return is_negative; }
 };
