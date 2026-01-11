@@ -1,0 +1,594 @@
+\appendix
+\section*{Приложения}
+\addcontentsline{toc}{section}{Приложения}
+
+\section{Исходный код программы}
+
+\subsection{Файл \texttt{Contact.h}}
+
+\begin{lstlisting}[language=C++,caption={Contact.h},label={lst:contact-h}]
+#pragma once
+
+#include <QString>
+#include <QStringList>
+#include <QDate>
+
+class Contact{
+private:
+    QString lastName;
+    QString firstName;
+    QString middleName;
+    QString address;
+    QDate birthDate;
+    QString email;
+    QStringList phones;
+    
+public:
+    Contact();
+    
+    QString getLastName() const;
+    QString getFirstName() const;
+    QString getMiddleName() const;
+    QString getAddress() const;
+    QDate getBirthDate() const;
+    QString getEmail() const;
+    QStringList getPhones() const;
+    
+    void setLastName(const QString &value);
+    void setFirstName(const QString &value);
+    void setMiddleName(const QString &value);
+    void setAddress(const QString &value);
+    void setBirthDate(const QDate &value);
+    void setEmail(const QString &value);
+    void setPhones(const QStringList &value);
+    
+    QString toString() const;
+    static Contact fromString(const QString &str);
+};
+\end{lstlisting}
+
+\subsection{Файл \texttt{Contact.cpp}}
+
+\begin{lstlisting}[language=C++,caption={Contact.cpp},label={lst:contact-cpp}]
+#include "headers/Contact.h"
+
+Contact::Contact() {
+    birthDate = QDate::currentDate();
+}
+
+QString Contact::getLastName() const { return lastName; }
+QString Contact::getFirstName() const { return firstName; }
+QString Contact::getMiddleName() const { return middleName; }
+QString Contact::getAddress() const { return address; }
+QDate Contact::getBirthDate() const { return birthDate; }
+QString Contact::getEmail() const { return email; }
+QStringList Contact::getPhones() const { return phones; }
+
+void Contact::setLastName(const QString &value) { lastName = value; }
+void Contact::setFirstName(const QString &value) { firstName = value; }
+void Contact::setMiddleName(const QString &value) { middleName = value; }
+void Contact::setAddress(const QString &value) { address = value; }
+void Contact::setBirthDate(const QDate &value) { birthDate = value; }
+void Contact::setEmail(const QString &value) { email = value; }
+void Contact::setPhones(const QStringList &value) { phones = value; }
+
+QString Contact::toString() const {
+    return lastName + "|" + firstName + "|" + middleName + "|" + 
+           address + "|" + birthDate.toString("yyyy-MM-dd") + "|" + 
+           email + "|" + phones.join(",");
+}
+
+Contact Contact::fromString(const QString &str) {
+    Contact contact;
+    QStringList parts = str.split('|');
+    
+    if (parts.size() == 7) {
+        contact.setLastName(parts[0]);
+        contact.setFirstName(parts[1]);
+        contact.setMiddleName(parts[2]);
+        contact.setAddress(parts[3]);
+        contact.setBirthDate(QDate::fromString(parts[4], "yyyy-MM-dd"));
+        contact.setEmail(parts[5]);
+        contact.setPhones(parts[6].split(','));
+    }
+    
+    return contact;
+}
+\end{lstlisting}
+
+\subsection{Файл \texttt{ContactDialog.h}}
+
+\begin{lstlisting}[language=C++,caption={ContactDialog.h},label={lst:dialog-h}]
+#pragma once
+
+#include <QDialog>
+#include <QLineEdit>
+#include <QDateEdit>
+#include "Contact.h"
+
+class ContactDialog : public QDialog{
+    Q_OBJECT
+    
+private:
+    QLineEdit *lastNameEdit;
+    QLineEdit *firstNameEdit;
+    QLineEdit *middleNameEdit;
+    QLineEdit *addressEdit;
+    QDateEdit *birthDateEdit;
+    QLineEdit *emailEdit;
+    QLineEdit *phonesEdit;
+    
+    bool validateName(const QString &name, const QString &fieldName);
+    bool validateEmail(const QString &email);
+    bool validatePhones(const QString &phones);
+    bool validateAddress(const QString &address);
+    QString normalizePhone(const QString &phone) const;
+    
+private slots:
+    void validateAndAccept();
+    
+public:
+    ContactDialog(QWidget *parent = nullptr);
+    Contact getContact() const;
+    void setContact(const Contact &contact);
+};
+\end{lstlisting}
+
+\subsection{Файл \texttt{ContactDialog.cpp}}
+
+\begin{lstlisting}[language=C++,caption={ContactDialog.cpp},label={lst:dialog-cpp}]
+#include "headers/ContactDialog.h"
+#include <QFormLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QRegularExpression>
+#include <QDate>
+
+ContactDialog::ContactDialog(QWidget *parent) : QDialog(parent){
+    setWindowTitle("Add/Edit Contact");
+    setMinimumWidth(400);
+    
+    QFormLayout *layout = new QFormLayout(this);
+    
+    lastNameEdit = new QLineEdit(this);
+    firstNameEdit = new QLineEdit(this);
+    middleNameEdit = new QLineEdit(this);
+    addressEdit = new QLineEdit(this);
+    birthDateEdit = new QDateEdit(this);
+    birthDateEdit->setCalendarPopup(true);
+    birthDateEdit->setDate(QDate::currentDate().addYears(-20));
+    birthDateEdit->setMaximumDate(QDate::currentDate().addDays(-1));
+    
+    emailEdit = new QLineEdit(this);
+    phonesEdit = new QLineEdit(this);
+    phonesEdit->setPlaceholderText("Enter phones separated by commas");
+    
+    layout->addRow("Last name:", lastNameEdit);
+    layout->addRow("First name:", firstNameEdit);
+    layout->addRow("Middle name:", middleNameEdit);
+    layout->addRow("Address:", addressEdit);
+    layout->addRow("Birth date:", birthDateEdit);
+    layout->addRow("Email:", emailEdit);
+    layout->addRow("Phones:", phonesEdit);
+    
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    QPushButton *okButton = new QPushButton("OK", this);
+    QPushButton *cancelButton = new QPushButton("Cancel", this);
+    
+    buttonLayout->addWidget(okButton);
+    buttonLayout->addWidget(cancelButton);
+    layout->addRow(buttonLayout);
+    
+    connect(okButton, &QPushButton::clicked, this, &ContactDialog::validateAndAccept);
+    connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+}
+
+bool ContactDialog::validateName(const QString &name, const QString &fieldName){
+    QString trimmed = name.trimmed();
+
+    if (trimmed.isEmpty()){
+        QMessageBox::warning(this, "Error", fieldName + " cannot be empty");
+        return false;
+    }
+
+    if (!trimmed[0].isUpper()){
+        QMessageBox::warning(this, "Error", fieldName + " must start with an uppercase letter");
+        return false;
+    }
+
+    if (trimmed.startsWith('-') || trimmed.endsWith('-')){
+        QMessageBox::warning(this, "Error", fieldName + " cannot start or end with a hyphen");
+        return false;
+    }
+
+    QRegularExpression nameRegex("^[\\p{L}\\d\\s-]+$");
+    if (!nameRegex.match(trimmed).hasMatch()){
+        QMessageBox::warning(this, "Error", fieldName + " may contain only letters, digits, hyphen and space");
+        return false;
+    }
+
+    QString normalized = trimmed.left(1).toUpper() + trimmed.mid(1).toLower();
+    if (normalized != trimmed){
+        QMessageBox::warning(this, "Error", fieldName + " must be in the format: First letter uppercase, the rest lowercase");
+        return false;
+    }
+    return true;
+}
+
+bool ContactDialog::validateEmail(const QString &email){
+    QString trimmed = email.trimmed();
+    trimmed.remove(' ');
+    
+    if (trimmed.isEmpty()){
+        QMessageBox::warning(this, "Error", "Email cannot be empty");
+        return false;
+    }
+    
+    QRegularExpression emailRegex("^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z0-9]+$");
+    if (!emailRegex.match(trimmed).hasMatch()){
+        QMessageBox::warning(this, "Error", "Invalid email format");
+        return false;
+    }
+    return true;
+}
+
+QString ContactDialog::normalizePhone(const QString &phone) const{
+    QString result;
+    for (QChar c : phone){
+        if (c.isDigit() || c == '+'){
+            result += c;
+        }
+    }
+    return result;
+}
+
+bool ContactDialog::validatePhones(const QString &phones){
+    if (phones.trimmed().isEmpty()){
+        QMessageBox::warning(this, "Error", "At least one phone number is required");
+        return false;
+    }
+
+    if (phones.contains('(') || phones.contains(')')){
+        QMessageBox::warning(this, "Error", "Invalid input, phone must not contain parentheses");
+        return false;
+    }
+    
+    QStringList phoneList = phones.split(',');
+    for (const QString &phone : phoneList){
+        QString normalized = normalizePhone(phone.trimmed());
+        if (normalized.length() < 10){
+            QMessageBox::warning(this, "Error", "Phone number is too short: " + phone);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ContactDialog::validateAddress(const QString &address){
+    QString trimmed = address.trimmed();
+    
+    if (trimmed.contains('|')){
+        QMessageBox::warning(this, "Error", "Address cannot contain the '|' character");
+        return false;
+    }
+    
+    return true;
+}
+
+void ContactDialog::validateAndAccept(){
+    if (!validateName(lastNameEdit->text(), "Last name")) return;
+    if (!validateName(firstNameEdit->text(), "First name")) return;
+    if (!middleNameEdit->text().trimmed().isEmpty() && !validateName(middleNameEdit->text(), "Middle name")) return;
+    if (!validateAddress(addressEdit->text())) return;
+    if (!validateEmail(emailEdit->text())) return;
+    if (!validatePhones(phonesEdit->text())) return;
+    
+    accept();
+}
+
+Contact ContactDialog::getContact() const{
+    Contact contact;
+    contact.setLastName(lastNameEdit->text().trimmed());
+    contact.setFirstName(firstNameEdit->text().trimmed());
+    contact.setMiddleName(middleNameEdit->text().trimmed());
+    contact.setAddress(addressEdit->text().trimmed());
+    contact.setBirthDate(birthDateEdit->date());
+    
+    QString email = emailEdit->text().trimmed();
+    email.remove(' ');
+    contact.setEmail(email);
+    
+    QStringList phoneList = phonesEdit->text().split(',');
+    QStringList normalizedPhones;
+    for (const QString &phone : phoneList){
+        normalizedPhones.append(normalizePhone(phone.trimmed()));
+    }
+    contact.setPhones(normalizedPhones);
+    
+    return contact;
+}
+
+void ContactDialog::setContact(const Contact &contact){
+    lastNameEdit->setText(contact.getLastName());
+    firstNameEdit->setText(contact.getFirstName());
+    middleNameEdit->setText(contact.getMiddleName());
+    addressEdit->setText(contact.getAddress());
+    birthDateEdit->setDate(contact.getBirthDate());
+    emailEdit->setText(contact.getEmail());
+    phonesEdit->setText(contact.getPhones().join(", "));
+}
+\end{lstlisting}
+
+\subsection{Файл \texttt{PhoneBook.h}}
+
+\begin{lstlisting}[language=C++,caption={PhoneBook.h},label={lst:phonebook-h}]
+#pragma once
+
+#include <QWidget>
+#include <QTableWidget>
+#include <QLineEdit>
+#include <QList>
+#include "Contact.h"
+
+class PhoneBook : public QWidget {
+    Q_OBJECT
+    
+private:
+    QTableWidget *table;
+    QLineEdit *searchEdit;
+    QList<Contact> contacts;
+    QString filename;
+    
+    void updateTable();
+    
+private slots:
+    void addContact();
+    void editContact();
+    void deleteContact();
+    void searchByColumn(int column);
+    void saveToFile();
+    void loadFromFile();
+    
+public:
+    PhoneBook(QWidget *parent = nullptr);
+};
+\end{lstlisting}
+
+\subsection{Файл \texttt{PhoneBook.cpp}}
+
+\begin{lstlisting}[language=C++,caption={PhoneBook.cpp},label={lst:phonebook-cpp}]
+#include "headers/PhoneBook.h"
+#include "headers/ContactDialog.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QMessageBox>
+#include <QFile>
+#include <QTextStream>
+#include <QHeaderView>
+#include <QDir>
+#include <QComboBox>
+
+PhoneBook::PhoneBook(QWidget *parent) : QWidget(parent){
+    filename = QDir::homePath() + "/phonebook.txt";
+    
+    setWindowTitle("Phone Book");
+    setMinimumSize(800, 600);
+    
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    
+    QHBoxLayout *searchLayout = new QHBoxLayout();
+    QLabel *searchLabel = new QLabel("Search:", this);
+    searchEdit = new QLineEdit(this);
+    
+    QComboBox *fieldCombo = new QComboBox(this);
+    fieldCombo->addItem("Last name", 0);
+    fieldCombo->addItem("First name", 1);
+    fieldCombo->addItem("Middle name", 2);
+    fieldCombo->addItem("Address", 3);
+    fieldCombo->addItem("Birth date", 4);
+    fieldCombo->addItem("Email", 5);
+    fieldCombo->addItem("Phones", 6);
+    
+    searchLayout->addWidget(searchLabel);
+    searchLayout->addWidget(searchEdit);
+    searchLayout->addWidget(fieldCombo);
+    mainLayout->addLayout(searchLayout);
+    
+    connect(searchEdit, &QLineEdit::textChanged, this, [this, fieldCombo](){
+        int column = fieldCombo->currentData().toInt();
+        searchByColumn(column);
+    });
+    
+    table = new QTableWidget(this);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->setColumnCount(7);
+    QStringList headers;
+    headers << "Last name" << "First name" << "Middle name" << "Address"
+            << "Birth date" << "Email" << "Phones";
+    table->setHorizontalHeaderLabels(headers);
+    table->horizontalHeader()->setStretchLastSection(true);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSortingEnabled(true);
+    mainLayout->addWidget(table);
+    
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    QPushButton *addButton = new QPushButton("Add", this);
+    QPushButton *editButton = new QPushButton("Edit", this);
+    QPushButton *deleteButton = new QPushButton("Delete", this);
+    QPushButton *saveButton = new QPushButton("Save", this);
+    QPushButton *loadButton = new QPushButton("Load", this);
+    
+    buttonLayout->addWidget(addButton);
+    buttonLayout->addWidget(editButton);
+    buttonLayout->addWidget(deleteButton);
+    buttonLayout->addWidget(saveButton);
+    buttonLayout->addWidget(loadButton);
+    mainLayout->addLayout(buttonLayout);
+    
+    connect(addButton, &QPushButton::clicked, this, &PhoneBook::addContact);
+    connect(editButton, &QPushButton::clicked, this, &PhoneBook::editContact);
+    connect(deleteButton, &QPushButton::clicked, this, &PhoneBook::deleteContact);
+    connect(saveButton, &QPushButton::clicked, this, &PhoneBook::saveToFile);
+    connect(loadButton, &QPushButton::clicked, this, &PhoneBook::loadFromFile);
+    
+    loadFromFile();
+}
+
+void PhoneBook::addContact(){
+    ContactDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted){
+        Contact contact = dialog.getContact();
+        contacts.append(contact);
+        updateTable();
+    }
+}
+
+void PhoneBook::editContact(){
+    int row = table->currentRow();
+    if (row < 0){
+        QMessageBox::warning(this, "Error", "Select a contact to edit");
+        return;
+    }
+    
+    int index = table->item(row, 0)->data(Qt::UserRole).toInt();
+    ContactDialog dialog(this);
+    dialog.setContact(contacts[index]);
+    
+    if (dialog.exec() == QDialog::Accepted){
+        contacts[index] = dialog.getContact();
+        updateTable();
+    }
+}
+
+void PhoneBook::deleteContact(){
+    int row = table->currentRow();
+    if (row < 0){
+        QMessageBox::warning(this, "Error", "Select a contact to delete");
+        return;
+    }
+    
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Confirmation",
+                                  "Delete selected contact?",
+                                  QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes){
+        int index = table->item(row, 0)->data(Qt::UserRole).toInt();
+        contacts.removeAt(index);
+        updateTable();
+    }
+}
+
+void PhoneBook::updateTable(){
+    table->setSortingEnabled(false);
+    table->setRowCount(contacts.size());
+    
+    for (int i = 0; i < contacts.size(); i++){
+        const Contact &c = contacts[i];
+        QTableWidgetItem *lastNameItem = new QTableWidgetItem(c.getLastName());
+        lastNameItem->setData(Qt::UserRole, i);
+        table->setItem(i, 0, lastNameItem);
+        
+        table->setItem(i, 1, new QTableWidgetItem(c.getFirstName()));
+        table->setItem(i, 2, new QTableWidgetItem(c.getMiddleName()));
+        table->setItem(i, 3, new QTableWidgetItem(c.getAddress()));
+        table->setItem(i, 4, new QTableWidgetItem(c.getBirthDate().toString("dd.MM.yyyy")));
+        table->setItem(i, 5, new QTableWidgetItem(c.getEmail()));
+        table->setItem(i, 6, new QTableWidgetItem(c.getPhones().join(", ")));
+    }
+    table->setSortingEnabled(true);
+}
+
+void PhoneBook::saveToFile(){
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+        QMessageBox::warning(this, "Error", "Failed to open file for writing");
+        return;
+    }
+    
+    QTextStream out(&file);
+    out.setEncoding(QStringConverter::Utf8);
+    
+    for (const Contact &c : contacts){
+        out << c.toString() << "\n";
+    }
+    
+    file.close();
+    QMessageBox::information(this, "Success", "Data saved successfully");
+}
+
+void PhoneBook::loadFromFile(){
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return;
+    }
+    
+    contacts.clear();
+    QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
+    
+    while (!in.atEnd()){
+        QString line = in.readLine();
+        Contact contact = Contact::fromString(line);
+        if (!contact.getLastName().isEmpty()){
+            contacts.append(contact);
+        }
+    }
+    
+    file.close();
+    updateTable();
+}
+
+void PhoneBook::searchByColumn(int column){
+    QString text = searchEdit->text().trimmed().toLower();
+    
+    if (text.isEmpty()){
+        for (int i = 0; i < table->rowCount(); i++)
+            table->setRowHidden(i, false);
+        return;
+    }
+    
+    for (int i = 0; i < table->rowCount(); i++){
+        bool found = false;
+        
+        if (column >= 0 && column < 6){
+            if (table->item(i, column) &&
+                table->item(i, column)->text().toLower().contains(text)){
+                found = true;
+            }
+        } else {
+            if (table->item(i, 6)){
+                QString phones = table->item(i, 6)->text().toLower();
+                QStringList phoneList = phones.split(",", Qt::SkipEmptyParts);
+                
+                for (const QString &phone : phoneList){
+                    if (phone.trimmed().contains(text)){
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+        table->setRowHidden(i, !found);
+    }
+}
+\end{lstlisting}
+
+\subsection{Файл \texttt{main.cpp}}
+
+\begin{lstlisting}[language=C++,caption={main.cpp},label={lst:main}]
+#include <QApplication>
+#include "headers/PhoneBook.h"
+
+int main(int argc, char *argv[]){
+    QApplication app(argc, argv);
+    
+    PhoneBook phoneBook;
+    phoneBook.show();
+    
+    return app.exec();
+}
+\end{lstlisting}
