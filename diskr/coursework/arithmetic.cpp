@@ -2,61 +2,57 @@
 #include "utils.h"
 #include "constants.h"
 
-char next_symbol(char current_char) {
-    if (!is_valid_digit(current_char)) {
-        throw std::logic_error("Internal error: next_symbol called with invalid character.");
+char next_symbol(char currentChar){
+    if (!is_valid_digit(currentChar)){
+        throw std::logic_error("error");
     }
-    return NEXT_SYMBOL_MAP.at(current_char);
+    return NEXT_SYMBOL_MAP.at(currentChar);
 }
 
-char prev_symbol(char current_char) {
-    if (!is_valid_digit(current_char)) {
-        throw std::logic_error("Internal error: prev_symbol called with invalid character.");
+char prev_symbol(char currentChar){
+    if (!is_valid_digit(currentChar)){
+        throw std::logic_error("error");
     }
     char current = get_additive_unit();
     char prev = get_additive_unit();
     
-    while (current != current_char) {
+    while (current != currentChar){
         prev = current;
         current = next_symbol(current);
     }
-    
     return prev;
 }
 
-char symbolic_add(char char1, char char2) {
-    if (!is_valid_digit(char1) || !is_valid_digit(char2)) {
-        throw std::logic_error("Internal error: symbolic_add called with invalid characters.");
+char symbolic_add(char operand1, char operand2){
+    if (!is_valid_digit(operand1) || !is_valid_digit(operand2)){
+        throw std::logic_error("error");
     }
-    auto [sum, carry] = ADDITION_TABLE[std::make_tuple(char1, char2, get_additive_unit())];
+    auto [sum, carry] = ADDITION_TABLE[std::make_tuple(operand1, operand2, get_additive_unit())];
     return sum;
 }
 
-char symbolic_negate(char c) {
-    if (!is_valid_digit(c)) {
-        throw std::logic_error("Internal error: symbolic_negate called with invalid character.");
+char symbolic_negate(char c){
+    if (!is_valid_digit(c)){
+        throw std::logic_error("error");
     }
     return SYMBOL_NEGATION_MAP.at(c);
 }
 
-char symbolic_multiply(char char1, char char2) {
-    if (!is_valid_digit(char1) || !is_valid_digit(char2)) {
-        throw std::logic_error("Internal error: symbolic_multiply called with invalid characters.");
+char symbolic_multiply(char operand1, char operand2){
+    if (!is_valid_digit(operand1) || !is_valid_digit(operand2)){
+        throw std::logic_error("error");
     }
-    if (char1 == get_additive_unit() || char2 == get_additive_unit()) {
+    if (operand1 == get_additive_unit() || operand2 == get_additive_unit()){
         return get_additive_unit();
     }
+    if (operand1 == get_multiplicative_unit()) return operand2;
+    if (operand2 == get_multiplicative_unit()) return operand1;
     
-    if (char1 == get_multiplicative_unit()) return char2;
-    if (char2 == get_multiplicative_unit()) return char1;
-    
-    char result = get_additive_unit();
+    char res = get_additive_unit();
     char counter = get_additive_unit();
-    
-    while (counter != char2) {
-        result = symbolic_add(result, char1);
+    while (counter != operand2){
+        res = symbolic_add(res, operand1);
         counter = next_symbol(counter);
     }
-    
-    return result;
+    return res;
 }

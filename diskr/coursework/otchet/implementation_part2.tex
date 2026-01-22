@@ -1,0 +1,268 @@
+\subsubsection{Класс BigFiniteNumber}
+
+Отвечает за операции над многоразрядными числами.\\
+
+Основные поля:
+
+\texttt{value} — строка символов (цифр) числа.
+
+\texttt{is\_negative} — флаг отрицательности числа.\\
+
+Основные методы: конструкторы, операторы сравнения, арифметические действия, вспомогательные методы нормализации и проверки переполнения.\\
+
+\textbf{Метод \texttt{normalize}}\\
+
+Вход: строка числа.\\
+
+Выход: строка без ведущих нулей.\\
+
+Описание: удаляет ведущие нулевые элементы из строки числа. Если все символы являются нулевыми, возвращается строка с одним нулевым элементом.\\
+
+\textbf{Метод \texttt{operator+}}\\
+
+Вход: два числа \texttt{a} и \texttt{b}.\\
+
+Выход: результат сложения.\\
+
+Описание: основной метод сложения. Анализирует знаки операндов. Если знаки совпадают, вызывается сложение по разрядам с учетом переноса. Иначе задача сводится к вычитанию меньшего по модулю числа из большего.\\
+
+Алгоритм сложения чисел одного знака:
+
+Выравнивание длины операндов добавлением нулевых элементов слева.
+
+Проход по разрядам справа налево.
+
+Для каждого разряда используется таблица сложения с входным переносом.
+
+Сохранение суммы разряда и обновление переноса.
+
+Если после обработки всех разрядов остался перенос, он добавляется как новый старший разряд.\\
+
+\begin{lstlisting}[language=C++, caption={Перегрузка operator'a +}, label={lst:+}]
+BigFiniteNumber BigFiniteNumber::operator+(const BigFiniteNumber& other) const{
+    if (this->is_negative == other.is_negative){
+        int max_len = std::max(
+            this->value.length(), 
+            other.value.length()
+        );
+        std::string s1 = pad_left(this->value, max_len);
+        std::string s2 = pad_left(other.value, max_len);
+        
+        std::string result;
+        char perenos = get_additive_unit();
+        for (int i = max_len - 1; i >= 0; --i){
+            auto [sum, new_perenos] = ADDITION_TABLE[
+                std::make_tuple(s1[i], s2[i], perenos)
+            ];
+            result = std::string(1, sum) + result;
+            perenos = new_perenos;
+        }
+        
+        if (perenos != get_additive_unit()){
+            result = std::string(1, perenos) + result;
+        }
+        
+        BigFiniteNumber res = 
+            BigFiniteNumber::from_internal_string(
+                normalize(result), 
+                this->is_negative
+            );
+        res.check_overflow();
+        return res;
+    } else{
+        if (this->is_negative){
+            BigFiniteNumber positive_this = 
+                BigFiniteNumber::from_internal_string(
+                    this->value, false
+                );
+            return other - positive_this;
+        } else{
+            BigFiniteNumber positive_other = 
+                BigFiniteNumber::from_internal_string(
+                    other.value, false
+                );
+            return *this - positive_other;
+        }
+    }
+}
+\end{lstlisting}
+
+\textbf{Метод \texttt{operator-}}\\
+
+Вход: два числа \texttt{a} и \texttt{b}.\\
+
+Выход: разность \texttt{a - b}.\\
+
+Описание: реализует вычитание с учетом знаков. Если знаки разные, задача сводится к сложению. Если знаки одинаковые, выполняется вычитание меньшего по модулю из большего с установкой соответствующего знака результата.\\
+
+Алгоритм вычитания:
+
+Определение большего и меньшего по модулю операндов.
+
+Выравнивание длины операндов.
+
+Проход по разрядам справа налево с учетом заема.
+
+Для каждого разряда проверяется возможность вычитания без заема.
+
+Если вычитание невозможно, выполняется заем из старшего разряда.
+
+Нормализация результата и установка знака.\\
+
+\textbf{Метод \texttt{operator*}}\\
+
+Вход: два числа \texttt{a} и \texttt{b}.\\
+
+Выход: произведение.\\
+
+Описание: использует алгоритм умножения столбиком. В цикле перебираются разряды второго множителя справа налево. Первый множитель умножается на текущую цифру второго путем многократного сложения. Результат сдвигается влево на номер разряда добавлением нулевых элементов справа. Все частичные произведения суммируются.\\
+
+\begin{lstlisting}[language=C++, caption={Перегрузка operator'a *}, label={lst:*}]
+BigFiniteNumber BigFiniteNumber::operator*(const BigFiniteNumber& other) const{
+    if (this->value == std::string(1, get_additive_unit()) && other.value == std::string(1, get_additive_unit())){
+        throw std::domain_error(INFINITY_INTERVAL_STR);
+    }
+
+    if (this->value == std::string(1, get_additive_unit()) || other.value == std::string(1, get_additive_unit())){
+        return BigFiniteNumber::from_internal_string(std::string(1, get_additive_unit()), false);
+    }
+
+    bool result_negative = (this->is_negative != other.is_negative);
+    
+    BigFiniteNumber result = BigFiniteNumber::from_internal_string(std::string(1, get_additive_unit()), false);
+    BigFiniteNumber multiplicand = BigFiniteNumber::from_internal_string(this->value, false);
+    
+    for (size_t i = 0; i < other.value.length(); i++){
+        int pos = other.value.length() - 1 - i;
+        char multiplier_digit = other.value[pos];
+        
+        if (multiplier_digit != get_additive_unit()){
+            BigFiniteNumber partial_product = BigFiniteNumber::from_internal_string(std::string(1, get_additive_unit()), false);
+            char counter = get_additive_unit();
+            while (counter != multiplier_digit){
+                partial_product = partial_product + multiplicand;
+                counter = next_symbol(counter);
+            }
+            
+            std::string sdvig_value = partial_product.value;
+            for (size_t j = 0; j < i; j++){
+                sdvig_value += get_additive_unit();
+            }
+            
+            BigFiniteNumber sdvig_product = BigFiniteNumber::from_internal_string(sdvig_value, false);
+            result = result + sdvig_product;
+        }
+    }
+    
+    BigFiniteNumber res = BigFiniteNumber::from_internal_string(result.value, result_negative);
+    res.check_overflow();
+    return res;
+}
+\end{lstlisting}
+
+\textbf{Метод \texttt{divide}}\\
+
+Вход: делимое \texttt{a} и делитель \texttt{b}.\\
+
+Выход: пара (частное, остаток).\\
+
+Описание: реализует деление столбиком. Алгоритм обрабатывает делимое слева направо, добавляя по одному разряду к текущему остатку. Для каждой позиции находится максимальная цифра частного, при умножении на которую делитель не превышает текущий остаток. Найденная цифра добавляется к частному, а произведение вычитается из остатка.\\
+
+Обработка специальных случаев:
+
+Деление на ноль: если делитель равен нулю и делимое не ноль, возвращается ошибка пустого множества. Если оба нуля, возвращается диапазон всех значений.
+
+Деление отрицательного на положительное: выполняется коррекция частного и остатка для обеспечения неотрицательности остатка.\\
+
+\begin{lstlisting}[language=C++, caption={Действие деление}, label={lst:/}]
+std::pair<BigFiniteNumber, BigFiniteNumber> BigFiniteNumber::divide(const BigFiniteNumber& other) const{
+    if (other.value == std::string(1, get_additive_unit())){
+        if (this->value == std::string(1, get_additive_unit())){
+            throw std::domain_error(INFINITY_INTERVAL_STR);
+        } else{
+            throw std::domain_error(EMPTY_SET_STR);
+        }
+    }
+    
+    if (this->value == std::string(1, get_additive_unit())){
+        BigFiniteNumber zero = BigFiniteNumber::from_internal_string(std::string(1, get_additive_unit()), false);
+        return {zero, zero};
+    }
+
+    BigFiniteNumber dividend_abs = BigFiniteNumber::from_internal_string(this->value, false);
+    BigFiniteNumber divisor_abs = BigFiniteNumber::from_internal_string(other.value, false);
+
+    if (dividend_abs < divisor_abs){
+        if (this->is_negative && !other.is_negative){
+            BigFiniteNumber minus_one = BigFiniteNumber::from_internal_string(std::string(1, get_multiplicative_unit()), true);
+            BigFiniteNumber remainder = divisor_abs - dividend_abs;
+            return {minus_one, remainder};
+        } else{
+            BigFiniteNumber zero = BigFiniteNumber::from_internal_string(std::string(1, get_additive_unit()), false);
+            return {zero, dividend_abs};
+        }
+    }
+
+    std::string quotient_str;
+    BigFiniteNumber current_remainder = BigFiniteNumber::from_internal_string(std::string(1, get_additive_unit()), false);
+    
+    for (size_t i = 0; i < dividend_abs.value.length(); i++){
+        current_remainder = BigFiniteNumber::from_internal_string(
+            current_remainder.value + std::string(1, dividend_abs.value[i]), false
+        );
+        current_remainder.value = normalize(current_remainder.value);
+        
+        char quotient_digit = get_additive_unit();
+        for (char test_digit = get_multiplicative_unit(); test_digit != get_additive_unit(); test_digit = next_symbol(test_digit)){
+            BigFiniteNumber test_product = divisor_abs * BigFiniteNumber::from_internal_string(std::string(1, test_digit), false);
+            if (test_product > current_remainder) break;
+            quotient_digit = test_digit;
+        }
+        quotient_str += quotient_digit;
+        if (quotient_digit != get_additive_unit()){
+            BigFiniteNumber product = divisor_abs * BigFiniteNumber::from_internal_string(std::string(1, quotient_digit), false);
+            current_remainder = current_remainder - product;
+        }
+    }
+    
+    BigFiniteNumber quotient_abs = BigFiniteNumber::from_internal_string(normalize(quotient_str), false);
+    
+    bool quotient_negative = (this->is_negative != other.is_negative);
+    BigFiniteNumber quotient = BigFiniteNumber::from_internal_string(quotient_abs.value, quotient_negative);
+    BigFiniteNumber remainder = current_remainder;
+    
+    if (this->is_negative && !other.is_negative && remainder.value != std::string(1, get_additive_unit())){
+        BigFiniteNumber one = BigFiniteNumber::from_internal_string(std::string(1, get_multiplicative_unit()), false);
+        quotient = quotient - one;
+        remainder = divisor_abs - remainder;
+    }
+    
+    remainder.is_negative = false;
+    
+    return {quotient, remainder};
+}
+\end{lstlisting}
+
+\subsection{Тестирование}
+
+Программа включает набор тестов для проверки математических свойств кольца.\\
+
+\textbf{Тест коммутативности сложения}\\
+
+Проверяет выполнение равенства $a + b = b + a$ для всех пар тестовых чисел.\\
+
+\textbf{Тест ассоциативности сложения}\\
+
+Проверяет выполнение равенства $(a + b) + c = a + (b + c)$ для трех тестовых чисел.\\
+
+\textbf{Тест дистрибутивности}\\
+
+Проверяет выполнение равенства $a * (b + c) = a * b + a * c$ для тройки чисел.\\
+
+\textbf{Тест свойства умножения на ноль}\\
+
+Проверяет выполнение равенства $x * a = a$ для различных значений $x$.\\
+
+\textbf{Тест деления}\\
+
+Проверяет корректность деления с остатком, включая случай деления отрицательного числа на положительное.

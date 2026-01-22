@@ -1,0 +1,255 @@
+\section{Особенности реализации}
+
+Программа написана на C++17 с использованием стандартной библиотеки. Сборка проекта осуществляется через Makefile.
+
+\subsection{Структура проекта}
+
+Файловая структура организована следующим образом:
+
+constants.h и constants.cpp содержат определения констант кольца.
+
+utils.h и utils.cpp содержат вспомогательные функции и таблицы действий.
+
+arithmetic.h и arithmetic.cpp содержат базовые операции малой арифметики.
+
+BigFiniteNumber.h и BigFiniteNumber.cpp содержат класс больших чисел.
+
+main.cpp содержит интерфейс калькулятора.
+
+Makefile содержит правила сборки проекта.
+
+\subsection{Архитектура классов}
+
+Система строится на взаимодействии основных компонентов.
+
+% Здесь будет диаграмма классов
+
+\subsubsection{Модуль constants}
+
+Отвечает за хранение констант кольца.
+
+Основные константы: \texttt{SYMBOLS} — упорядоченный список элементов кольца, \texttt{MOD} — размер кольца (8), \texttt{ADDITIVE\_UNIT} — символ нуля (\texttt{'a'}), \texttt{MULTIPLICATIVE\_UNIT} — символ единицы (\texttt{'b'}), \texttt{MAX\_DIGITS} — максимальное количество разрядов (8).
+
+Определение констант:
+
+\begin{verbatim}
+const std::vector<char> SYMBOLS ={'a', 'b', 'e', 'd', 'g', 'c', 'f', 'h'};
+const int MOD = SYMBOLS.size();
+const char ADDITIVE_UNIT = SYMBOLS[0];
+const char MULTIPLICATIVE_UNIT = SYMBOLS[1];
+const int MAX_DIGITS = 8;
+\end{verbatim}
+
+\subsubsection{Модуль utils}
+
+Реализует таблицы действий и вспомогательные функции.
+
+Основные таблицы:
+
+\texttt{NEXT\_SYMBOL\_MAP} — таблица переходов для правила <<+1>>.
+
+\texttt{SYMBOL\_NEGATION\_MAP} — таблица аддитивных инверсий.
+
+\texttt{ADDITION\_TABLE} — таблица сложения с переносом.
+
+\vspace{1 em}
+
+\textbf{Функция init\_symbols\_maps}
+
+Вход: map<char, char> NEXT\_SYMBOL\_MAP (таблица переходов).
+
+Выход: заполняет глобальные таблицы.
+
+Описание: инициализирует все необходимые таблицы действий. Сначала заполняется таблица переходов. Затем вычисляются аддитивные инверсии для всех элементов. После этого строится полная таблица сложения с учетом переноса для всех возможных комбинаций входных данных.
+
+\vspace{1 em}
+
+\textbf{Таблица переходов NEXT\_SYMBOL\_MAP}
+
+\vspace{1 em}
+
+Эта таблица хранит правило <<+1>> для варианта 48. Для каждого символа кольца определен следующий символ в циклической последовательности.
+
+\begin{verbatim}
+NEXT_SYMBOL_MAP['a'] = 'b';
+NEXT_SYMBOL_MAP['b'] = 'e';
+NEXT_SYMBOL_MAP['c'] = 'f';
+NEXT_SYMBOL_MAP['d'] = 'g';
+NEXT_SYMBOL_MAP['e'] = 'd';
+NEXT_SYMBOL_MAP['f'] = 'h';
+NEXT_SYMBOL_MAP['g'] = 'c';
+NEXT_SYMBOL_MAP['h'] = 'a';
+\end{verbatim}
+
+Таблица переходов используется для реализации базового действия <<+1>>, на основе которого строятся все остальные действия кольца.
+
+\vspace{1 em}
+
+\textbf{Таблица отрицаний SYMBOL\_NEGATION\_MAP}
+
+\vspace{1 em}
+
+Эта таблица хранит аддитивные инверсии элементов. Для каждого элемента $x$ находится такой элемент $-x$, что $x + (-x) = a$ (нулевой элемент).
+
+Построение таблицы отрицаний: для каждого элемента кольца применяется действие <<+1>> до тех пор, пока не получится нулевой элемент. Таким образом, количество сделанных шагов соответствует аддитивной инверсии исходного элемента. \\
+
+\begin{lstlisting}[language=C++, caption={Построение таблицы отрицаний}, label={lst:addition_table1}]
+for (char c : SYMBOLS){
+    char current = c;
+    char counter = get_additive_unit();
+    
+    while (current != get_additive_unit()){
+        current = NEXT_SYMBOL_MAP.at(current);
+        counter = NEXT_SYMBOL_MAP.at(counter);
+    }
+    SYMBOL_NEGATION_MAP[c] = counter;
+}
+\end{lstlisting}
+
+Пример: для элемента $b$ нужно выполнить 7 шагов по <<+1>>, чтобы вернуться к $a$. Поэтому $-b = h$.
+
+\vspace{1 em}
+
+\textbf{Таблица сложения ADDITION\_TABLE}
+
+\vspace{1 em}
+
+Эта таблица хранит результаты сложения с переносом для всех возможных комбинаций двух цифр и входного переноса.
+
+\vspace{1 em}
+
+Структура записи в таблице: $(digit_1, digit_2, carry\_in) \to (sum, carry\_out)$, \\
+где $digit_1$ — первая цифра, $digit_2$ — вторая цифра, $carry\_in$ — входной перенос из предыдущего разряда, $sum$ — результат сложения в текущем разряде, $carry\_out$ — выходной перенос в следующий разряд.
+
+\vspace{1 em}
+
+Построение таблицы сложения: таблица строится для всех комбинаций двух операндов и входного переноса. Для каждой тройки $(c_1, c_2, carry\_in)$ вычисляется сумма и выходной перенос.
+
+\vspace{1 em}
+
+Алгоритм вычисления: к первому операнду $c_1$ последовательно применяется действие <<+1>> столько раз, сколько шагов от нуля до $c_2$. Затем к полученному результату применяется действие <<+1>> столько раз, сколько шагов от нуля до $carry\_in$. Если во время вычисления происходит переход через нулевой элемент, фиксируется переполнение и устанавливается выходной перенос.
+
+\vspace{1 em}
+
+\begin{lstlisting}[language=C++, caption={Построение таблицы сложения с переносом}, label={lst:addition_table2}]
+for (char c1 : SYMBOLS){
+    for (char c2 : SYMBOLS){
+        for (char carry_in : SYMBOLS){
+            char result = c1;
+            int steps = 0;
+            
+            char temp_c2 = get_additive_unit();
+            while (temp_c2 != c2){
+                result = NEXT_SYMBOL_MAP.at(result);
+                temp_c2 = NEXT_SYMBOL_MAP.at(temp_c2);
+                steps++;
+                if (result == get_additive_unit()){
+                    steps = MOD + steps;
+                }
+            }
+            
+            char temp_carry = get_additive_unit();
+            while (temp_carry != carry_in){
+                result = NEXT_SYMBOL_MAP.at(result);
+                temp_carry = NEXT_SYMBOL_MAP.at(temp_carry);
+                steps++;
+                if (result == get_additive_unit() && 
+                    temp_carry != carry_in){
+                    steps = MOD + steps;
+                }
+            }
+            
+            char carry_out = get_additive_unit();
+            if (steps >= MOD){
+                carry_out = get_multiplicative_unit();
+            }
+            
+            ADDITION_TABLE[std::make_tuple(c1, c2, carry_in)] = 
+                std::make_pair(result, carry_out);
+        }
+    }
+}
+\end{lstlisting}
+
+Пример использования таблицы: для вычисления $f + e$ с входным переносом $b$ обращаемся к таблице. Вызов \texttt{ADDITION\_TABLE[(f, e, b)]} возвращает пару \texttt{(a, b)}, где первый элемент — результат сложения в текущем разряде, второй элемент — перенос в следующий разряд.
+
+Таблица сложения содержит $8 * 8 * 8 = 512$ записей, охватывая все возможные комбинации входных данных для кольца $Z_8$.
+
+\subsubsection{Модуль arithmetic}
+
+Реализует базовые операции малой арифметики. Основные функции: \texttt{next\_symbol}, \texttt{prev\_symbol}, \texttt{symbolic\_add}, \texttt{symbolic\_negate}, \texttt{symbolic\_multiply}.\\
+
+\textbf{Функция \texttt{next\_symbol}}\\
+
+Вход: символ \texttt{c}.\\
+
+Выход: следующий символ в кольце.\\
+
+Описание: возвращает следующий элемент согласно правилу <<+1>>. Использует таблицу переходов \texttt{NEXT\_SYMBOL\_MAP}.\\
+
+\begin{lstlisting}[language=C++, caption={Функция next\_symbol}, label={lst:addition}]
+char next_symbol(char current_char){
+    if (!is_valid_digit(current_char)){
+        throw std::logic_error("Invalid character");
+    }
+    return NEXT_SYMBOL_MAP.at(current_char);
+}
+\end{lstlisting}
+
+\textbf{Функция \texttt{symbolic\_add}}\\
+
+Вход: два символа \texttt{a} и \texttt{b}.\\
+
+Выход: их сумма.\\
+
+Описание: сложение выполняется через циклическое прибавление единицы. К первому аргументу применяется \texttt{next\_symbol} столько раз, сколько шагов от нуля до второго аргумента. Использует таблицу сложения для получения результата без переноса.\\
+
+\begin{lstlisting}[language=C++, caption={Функция symbolic\_add}, label={lst:addition2}]
+char symbolic_add(char char1, char char2){
+    auto [sum, carry] = ADDITION_TABLE[std::make_tuple(char1, char2, get_additive_unit())];
+    return sum;
+}
+\end{lstlisting}
+
+\textbf{Функция \texttt{symbolic\_negate}}\\
+
+Вход: символ \texttt{c}.\\
+
+Выход: аддитивная инверсия.\\
+
+Описание: возвращает противоположный элемент из таблицы отрицаний. Для элемента $x$ находится такой элемент $-x$, что $x + (-x) = 0$.\\
+
+\begin{lstlisting}[language=C++, caption={Функция symbolic\_negate}, label={lst:negate}]
+char symbolic_negate(char c){
+    return SYMBOL_NEGATION_MAP.at(c);
+}
+\end{lstlisting}
+
+\textbf{Функция \texttt{symbolic\_multiply}}\\
+
+Вход: два символа \texttt{a} и \texttt{b}.\\
+
+Выход: произведение.\\
+
+Описание: умножение сводится к многократному сложению. Первый операнд прибавляется к результату столько раз, сколько единиц содержится в операнде $b$. Обрабатываются специальные случаи умножения.\\
+
+\begin{lstlisting}[language=C++, caption={Функция symbolic\_multiply}, label={lst:multiply}]
+char symbolic_multiply(char char1, char char2){
+    if (char1 == get_additive_unit() || 
+        char2 == get_additive_unit()){
+        return get_additive_unit();
+    }
+    
+    if (char1 == get_multiplicative_unit()) return char2;
+    if (char2 == get_multiplicative_unit()) return char1;
+    
+    char result = get_additive_unit();
+    char counter = get_additive_unit();
+    
+    while (counter != char2){
+        result = symbolic_add(result, char1);
+        counter = next_symbol(counter);
+    }
+    return result;
+}
+\end{lstlisting}

@@ -1,0 +1,246 @@
+\section{Результаты работы программы}
+
+\subsection{Запуск калькулятора}
+
+После запуска программы командой \texttt{./calculator} пользователю отображается начальный экран с информацией о системе и доступными операциями (см. рисунок \ref{fig:main_stream}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 12.08.52@2x.png}
+    \caption{Начальное меню}
+    \label{fig:main_stream}
+\end{figure}
+
+На начальном экране указаны:
+
+Используемая система счисления и множество элементов.
+
+Значения аддитивной и мультипликативной единиц.
+
+Максимальная длина чисел в разрядах.
+
+Правило инкремента для данного варианта.
+
+Список доступных операций с номерами для выбора.
+
+\subsection{Выполнение операций}
+
+Пользователь вводит номер операции, затем два числа. Программа вычисляет результат и выводит его на экран (см. рисунок \ref{fig:plus}).\\
+
+Пример сложения: $b + e = d$
+
+\newpage
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 12.10.11@2x.png}
+    \caption{Действие сложения}
+    \label{fig:plus}
+\end{figure}
+
+Пользователь выбирает операцию 1, вводит первое число \texttt{b} и второе число \texttt{e}.\\
+
+Пример сложения с отрицательными числами: $-b + f = c$
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 12.14.48@2x.png}
+    \caption{Действие сложения с отрицательными значениями}
+    \label{fig:plus s minusom}
+\end{figure}
+
+Программа корректно обрабатывает отрицательные числа (см. рисунок. \ref{fig:plus s minusom}). Минус указывается перед числом.
+
+Пример вычитания: $f - c = b$
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 12.16.48@2x.png}
+    \caption{Действие вычитания}
+    \label{fig:minus}
+\end{figure}
+
+Вычитание реализовано через сложение с противоположным элементом (см. рисунок. \ref{fig:minus}).\\
+
+Пример умножения: $c * e = be$
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Photo/CleanShot 2025-12-24 at 12.20.47@2x.png}
+    \caption{Действие умножения}
+    \label{fig:ymnow}
+\end{figure}
+
+\newpage
+
+Умножение выполняется через повторное сложение с учетом разрядности результата (см. рисунок. \ref{fig:ymnow}).\\
+
+Пример деления: $h \div c = b(e)$
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 12.27.14@2x.png}
+    \caption{Действие деления}
+    \label{fig:delenie}
+\end{figure}
+
+При делении программа выводит частное и остаток в скобках. Остаток всегда неотрицательный (см. рисунок \ref{fig:delenie}).\\
+
+Пример деления отрицательного числа на положительное: $-h \div c = -e(d)$
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 12.29.24@2x.png}
+    \caption{Действие деления отрицательного на положительное}
+    \label{fig:delenie2}
+\end{figure}
+
+Программа корректно выполняет коррекцию частного и остатка при делении отрицательного числа на положительное (см. рисунок \ref{fig:delenie2}).
+
+\subsubsection{Необычные случаи}
+
+Пример деления аддитивной единицы на аддитивную: $a \div a$
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 12.35.40@2x.png}
+    \caption{Обрабатываемый случай деления}
+    \label{fig:delenie3}
+\end{figure}
+
+Программа корректно выполняет деление и выдает правильный результат при операндах аддитивных единиц (см. рисунок \ref{fig:delenie3}).\\
+
+Пример деления аддитивной единицы на любой другой символ нашей системы счисления: $a \div b$ и $a \div h$
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Photo/CleanShot 2025-12-24 at 12.52.19@2x.png}
+    \caption{Случай деления <<a>> на <<x>>}
+    \label{fig:delenie4}
+\end{figure}
+
+Программа дает корректный результат (см. рисунок \ref{fig:delenie4}), а именно: <<a>>, что и требовалось ожидать.\\
+
+Пример умножения аддитивной единица на любой символ: $a * x = a$
+
+Этот пункт как раз должен выполняться, так как он учитывался в составленном задании к курсовой работе (см. рисунок \ref{fig:ymnow2}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 12.59.12@2x.png}
+    \caption{Случай умножения <<a>> на <<x>>}
+    \label{fig:ymnow2}
+\end{figure}
+
+Показанный результат дает понять, что свойство: для любого х | х * a = a
+
+\subsection{Запуск тестов}
+
+Для запуска встроенных тестов пользователь выбирает операцию 5. Результат показан на рисунке \ref{fig:tests}.
+
+Программа последовательно проверяет все математические свойства кольца:
+
+Проверка правила <<+1>> для всех элементов.
+
+Коммутативность сложения.
+
+Ассоциативность сложения.
+
+Коммутативность умножения.
+
+Ассоциативность умножения.
+
+Дистрибутивность умножения относительно сложения.
+
+Свойство умножения на нулевой элемент.
+
+Для каждого теста выводится проверяемое выражение и результат проверки.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 13.16.01@2x.png}
+    \caption{Все тесты}
+    \label{fig:tests}
+\end{figure}
+
+\subsection{Обработка ошибок}
+
+Программа корректно обрабатывает некорректный ввод и выводит соответствующие сообщения об ошибках.\\
+
+\textbf{Деление на ноль}\\
+
+При попытке деления ненулевого числа на ноль программа выводит сообщение о пустом множестве (см. рисунок \ref{fig:owu6ka1}).
+
+Пример: $c \div a = \{\}$
+
+\newpage
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 13.18.26@2x.png}
+    \caption{Деление ненулевого числа на аддитивную единицу}
+    \label{fig:owu6ka1}
+\end{figure}
+
+\textbf{Переполнение}\\
+
+Если результат операции превышает максимальное количество разрядов, программа выводит сообщение о переполнении (см. рисунок \ref{fig:owu6ka2}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 13.26.25@2x.png}
+    \caption{Переполнение}
+    \label{fig:owu6ka2}
+\end{figure}
+
+На скриншоте явно показан пример близкий к переполнению, и что меняется, чтоб мы вышли за пределы 8 символов.
+
+\textbf{Некорректный символ}\\
+
+При вводе символа, не принадлежащего кольцу, программа выводит сообщение об ошибке и заменяет число на нулевое значение (см. рисунок \ref{fig:owu6ka3}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 13.30.02@2x.png}
+    \caption{Ошибка: некорректный символ}
+    \label{fig:owu6ka3}
+\end{figure}
+
+\textbf{Некорректный ввод в меню}\\
+
+При вводе некорректного номера действия программа выводит сообщение об ошибке и запрашивает ввод повторно (см. рисунок \ref{fig:owu6ka4}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 13.32.37@2x.png}
+    \caption{Ошибка: некорректный номер}
+    \label{fig:owu6ka4}
+\end{figure}
+
+\subsection{Сборка проекта}
+
+Сборка проекта выполняется через Makefile. Команды для сборки и запуска:
+
+\begin{verbatim}
+# Сборка проекта
+make
+
+# Запуск калькулятора
+make run
+
+# Очистка файлов
+make clean
+
+# Пересборка
+make rebuild
+\end{verbatim}
+
+После выполнения команды \texttt{make} создается исполняемый файл \texttt{calculator}. Результат виден на изображении \ref{fig:make}.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Photo/CleanShot 2025-12-24 at 13.35.55@2x.png}
+    \caption{Сборка проекта}
+    \label{fig:make}
+\end{figure}
+ 

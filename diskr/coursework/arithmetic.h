@@ -3,7 +3,6 @@
 
 #include <stdexcept>
 
-// Операции над символами
 char next_symbol(char current_char);
 char prev_symbol(char current_char);
 char symbolic_add(char char1, char char2);

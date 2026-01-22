@@ -9,7 +9,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 	@echo ""
-	@echo "✓ Калькулятор успешно скомпилирован!"
+	@echo " Калькулятор успешно скомпилирован!"
 	@echo "  Запуск: ./$(TARGET)"
 
 main.o: main.cpp BigFiniteNumber.h constants.h utils.h arithmetic.h

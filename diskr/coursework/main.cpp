@@ -35,7 +35,6 @@ void runTests() {
     cout << "============================================================" << endl;
     
     try {
-        // Тест 1: Проверка правила "+1"
         cout << "\n1. ПРОВЕРКА ПРАВИЛА \"+1\" (Вариант 48):" << endl;
         BigFiniteNumber one("b");
         cout << "   a + b = " << (BigFiniteNumber("a") + one) << " (ожидается: b)" << endl;
@@ -48,45 +47,40 @@ void runTests() {
         cout << "   h + b = " << (BigFiniteNumber("h") + one) << " (ожидается: a → ba)" << endl;
         
         cout << "\n2. Коммутативность сложения (a + b = b + a):" << endl;
-        BigFiniteNumber r1 = BigFiniteNumber("c") + BigFiniteNumber("d");
-        BigFiniteNumber r2 = BigFiniteNumber("d") + BigFiniteNumber("c");
-        cout << "   c + d = " << r1 << endl;
-        cout << "   d + c = " << r2 << endl;
-        cout << "   Результат: " << (r1 == r2 ? "OK" : "Error") << endl;
+        BigFiniteNumber test1 = BigFiniteNumber("c") + BigFiniteNumber("d");
+        BigFiniteNumber test2 = BigFiniteNumber("d") + BigFiniteNumber("c");
+        cout << "   c + d = " << test1 << endl;
+        cout << "   d + c = " << test2 << endl;
+        cout << "   Результат: " << (test1 == test2 ? "OK" : "Error") << endl;
         
-        // Тест 3
         cout << "\n3. Ассоциативность ((a+b)+c = a+(b+c)):" << endl;
-        r1 = (BigFiniteNumber("b") + BigFiniteNumber("c")) + BigFiniteNumber("d");
-        r2 = BigFiniteNumber("b") + (BigFiniteNumber("c") + BigFiniteNumber("d"));
-        cout << "   (b + c) + d = " << r1 << endl;
-        cout << "   b + (c + d) = " << r2 << endl;
-        cout << "   Результат: " << (r1 == r2 ? "OK" : "Error") << endl;
+        test1 = (BigFiniteNumber("b") + BigFiniteNumber("c")) + BigFiniteNumber("d");
+        test2 = BigFiniteNumber("b") + (BigFiniteNumber("c") + BigFiniteNumber("d"));
+        cout << "   (b + c) + d = " << test1 << endl;
+        cout << "   b + (c + d) = " << test2 << endl;
+        cout << "   Результат: " << (test1 == test2 ? "OK" : "Error") << endl;
         
-        // Тест 4
         cout << "\n4. Коммутативность умножения (a * b = b * a):" << endl;
-        r1 = BigFiniteNumber("c") * BigFiniteNumber("e");
-        r2 = BigFiniteNumber("e") * BigFiniteNumber("c");
-        cout << "   c * e = " << r1 << endl;
-        cout << "   e * c = " << r2 << endl;
-        cout << "   Результат: " << (r1 == r2 ? "OK" : "Error") << endl;
+        test1 = BigFiniteNumber("c") * BigFiniteNumber("e");
+        test2 = BigFiniteNumber("e") * BigFiniteNumber("c");
+        cout << "   c * e = " << test1 << endl;
+        cout << "   e * c = " << test2 << endl;
+        cout << "   Результат: " << (test1 == test2 ? "OK" : "Error") << endl;
         
-        // Тест 5
         cout << "\n5. Ассоциативность умножения ((a*b)*c = a*(b*c)):" << endl;
-        r1 = (BigFiniteNumber("b") * BigFiniteNumber("c")) * BigFiniteNumber("d");
-        r2 = BigFiniteNumber("b") * (BigFiniteNumber("c") * BigFiniteNumber("d"));
-        cout << "   (b * c) * d = " << r1 << endl;
-        cout << "   b * (c * d) = " << r2 << endl;
-        cout << "   Результат: " << (r1 == r2 ? "OK" : "Error") << endl;
+        test1 = (BigFiniteNumber("b") * BigFiniteNumber("c")) * BigFiniteNumber("d");
+        test2 = BigFiniteNumber("b") * (BigFiniteNumber("c") * BigFiniteNumber("d"));
+        cout << "   (b * c) * d = " << test1 << endl;
+        cout << "   b * (c * d) = " << test2 << endl;
+        cout << "   Результат: " << (test1 == test2 ? "OK" : "Error") << endl;
         
-        // Тест 6
         cout << "\n6. Дистрибутивность (a*(b+c) = a*b + a*c):" << endl;
-        r1 = BigFiniteNumber("c") * (BigFiniteNumber("b") + BigFiniteNumber("d"));
-        r2 = (BigFiniteNumber("c") * BigFiniteNumber("b")) + (BigFiniteNumber("c") * BigFiniteNumber("d"));
-        cout << "   c * (b + d) = " << r1 << endl;
-        cout << "   c * b + c * d = " << r2 << endl;
-        cout << "   Результат: " << (r1 == r2 ? "OK" : "Error") << endl;
+        test1 = BigFiniteNumber("c") * (BigFiniteNumber("b") + BigFiniteNumber("d"));
+        test2 = (BigFiniteNumber("c") * BigFiniteNumber("b")) + (BigFiniteNumber("c") * BigFiniteNumber("d"));
+        cout << "   c * (b + d) = " << test1 << endl;
+        cout << "   c * b + c * d = " << test2 << endl;
+        cout << "   Результат: " << (test1 == test2 ? "OK" : "Error") << endl;
         
-        // Тест 7
         cout << "\n7. Свойство x * a = a:" << endl;
         cout << "   b * a = " << (BigFiniteNumber("b") * BigFiniteNumber("a")) << " (ожидается: a)" << endl;
         cout << "   c * a = " << (BigFiniteNumber("c") * BigFiniteNumber("a")) << " (ожидается: a)" << endl;
@@ -142,24 +136,24 @@ int main() {
             BigFiniteNumber num1(num1_str);
             BigFiniteNumber num2(num2_str);
             
-            cin.clear(); // Очистка буфера после успешного ввода
+            cin.clear();
             cin.ignore(10000, '\n');
             
             string operation;
             switch (choice) {
                 case 1: {
-                    BigFiniteNumber result = num1 + num2;
-                    cout << "\nРезультат: " << num1 << " + " << num2 << " = " << result << endl;
+                    BigFiniteNumber res = num1 + num2;
+                    cout << "\nРезультат: " << num1 << " + " << num2 << " = " << res << endl;
                     break;
                 }
                 case 2: {
-                    BigFiniteNumber result = num1 - num2;
-                    cout << "\nРезультат: " << num1 << " - " << num2 << " = " << result << endl;
+                    BigFiniteNumber res = num1 - num2;
+                    cout << "\nРезультат: " << num1 << " - " << num2 << " = " << res << endl;
                     break;
                 }
                 case 3: {
-                    BigFiniteNumber result = num1 * num2;
-                    cout << "\nРезультат: " << num1 << " * " << num2 << " = " << result << endl;
+                    BigFiniteNumber res = num1 * num2;
+                    cout << "\nРезультат: " << num1 << " * " << num2 << " = " << res << endl;
                     break;
                 }
                 case 4: {

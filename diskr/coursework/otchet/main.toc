@@ -1,0 +1,22 @@
+\babel@toc {russian}{}\relax 
+\contentsline {section}{Введение}{3}{section*.2}%
+\contentsline {section}{\numberline {1}Математическое описание}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Малая и большая конечные арифметики}{4}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Примеры арифметических действий}{4}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Особенности реализации}{7}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Структура проекта}{7}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Архитектура классов}{7}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Модуль constants}{7}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Модуль utils}{7}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Модуль arithmetic}{10}{subsubsection.2.2.3}%
+\contentsline {subsubsection}{\numberline {2.2.4}Класс BigFiniteNumber}{12}{subsubsection.2.2.4}%
+\contentsline {subsection}{\numberline {2.3}Тестирование}{18}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Результаты работы программы}{19}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Запуск калькулятора}{19}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Выполнение операций}{19}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Необычные случаи}{23}{subsubsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.3}Запуск тестов}{24}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Обработка ошибок}{25}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Сборка проекта}{28}{subsection.3.5}%
+\contentsline {section}{Заключение}{29}{section*.20}%
+\contentsline {section}{Список литературы}{31}{section*.20}%

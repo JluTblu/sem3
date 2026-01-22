@@ -58,7 +58,7 @@ BigFiniteNumber::BigFiniteNumber(const std::string& num_str){
     
     if (temp_str[0] == '-'){
         is_negative = true;
-        temp_str = temp_str.substr(1); // берем без нуля (подстроку)
+        temp_str = temp_str.substr(1); // берем без знака (подстроку)
         if (temp_str.empty()){
             value = std::string(1, get_additive_unit());
             is_negative = false;
@@ -68,8 +68,7 @@ BigFiniteNumber::BigFiniteNumber(const std::string& num_str){
     
     for (char c : temp_str){
         if (!is_valid_digit(c)){ // проверяем на валидность символа, если это какой-то непонятный - будет 0, т.е. "a"
-            std::cerr << "ERROR: Invalid character '" << c << "' in input '" << num_str
-                      << "'. Defaulting to '" << get_additive_unit() << "'." << std::endl;
+            std::cerr << "error: Invalid character '" << c << "' in input '" << num_str << "'. Defaulting to '" << get_additive_unit() << "'." << std::endl;
             value = std::string(1, get_additive_unit());
             is_negative = false;
             return;
@@ -124,20 +123,20 @@ bool BigFiniteNumber::operator>=(const BigFiniteNumber& other) const{
 
 BigFiniteNumber BigFiniteNumber::operator+(const BigFiniteNumber& other) const{
     if (this->is_negative == other.is_negative){
-        int max_len = std::max(this->value.length(), other.value.length());
-        std::string s1 = pad_left(this->value, max_len); // выравнивание длины с помощью функции
-        std::string s2 = pad_left(other.value, max_len); // /--/
+        int maxLength = std::max(this->value.length(), other.value.length());
+        std::string s1 = pad_left(this->value, maxLength); // выравнивание длины с помощью функции
+        std::string s2 = pad_left(other.value, maxLength); // /--/
         
         std::string result;
-        char perenos = get_additive_unit();
-        for (int i = max_len - 1; i >= 0; --i){ // цикл сложения
-            auto [sum, new_perenos] = ADDITION_TABLE[std::make_tuple(s1[i], s2[i], perenos)];
+        char carry_bit = get_additive_unit();
+        for (int i = maxLength - 1; i >= 0; --i){ // цикл сложения
+            auto [sum, new_carry_bit] = ADDITION_TABLE[std::make_tuple(s1[i], s2[i], carry_bit)];
             result = std::string(1, sum) + result; // добавляем слева цифру
-            perenos = new_perenos; // обновляем перенос
+            carry_bit = new_carry_bit; // обновляем перенос
         }
         
-        if (perenos != get_additive_unit()){ // если перенос остался
-            result = std::string(1, perenos) + result; // добавляем новую цифру
+        if (carry_bit != get_additive_unit()){ // если перенос остался
+            result = std::string(1, carry_bit) + result; // добавляем новую цифру
         }
         
         BigFiniteNumber res = BigFiniteNumber::from_internal_string(normalize(result), this->is_negative); // убираем ведущие нули, грубо говоря нормализуем и устанавливаем такой знак как у букв 
@@ -176,28 +175,28 @@ BigFiniteNumber BigFiniteNumber::operator-(const BigFiniteNumber& other) const{
         result_is_negative = !result_is_negative;
     }
     
-    int max_len = std::max(larger->value.length(), smaller->value.length()); // выравниваем длины
-    std::string larger_padded = pad_left(larger->value, max_len);
-    std::string smaller_padded = pad_left(smaller->value, max_len);
+    int maxLength = std::max(larger->value.length(), smaller->value.length()); // выравниваем длины
+    std::string larger_padded = pad_left(larger->value, maxLength);
+    std::string smaller_padded = pad_left(smaller->value, maxLength);
     
     std::string result;
-    char zaem = get_additive_unit();
+    char borrow_bit = get_additive_unit();
     
-    for (int i = max_len - 1; i >= 0; --i){ // цикл вычитания справа налево
+    for (int i = maxLength - 1; i >= 0; --i){ // цикл вычитания справа налево
         char larger_char = larger_padded[i]; // берем текущие цифры
         char smaller_char = smaller_padded[i];
         
-        if (zaem != get_additive_unit()){ // если был заем 
-            if (compare_chars(larger_char, zaem) >= 0){ // если можем вычесть заем с этого разряда - то уменьшаем его значение
-                larger_char = symbolic_add(larger_char, symbolic_negate(zaem));
-                zaem = get_additive_unit();
+        if (borrow_bit != get_additive_unit()){ // если был заем 
+            if (compare_chars(larger_char, borrow_bit) >= 0){ // если можем вычесть заем с этого разряда - то уменьшаем его значение
+                larger_char = symbolic_add(larger_char, symbolic_negate(borrow_bit));
+                borrow_bit = get_additive_unit();
             } else{
                 char temp = larger_char; // если не можем вычесть
                 for (int j = 0; j < MOD; j++){ // берем со след разряда 
                     temp = next_symbol(temp);
                 }
-                larger_char = symbolic_add(temp, symbolic_negate(zaem));
-                zaem = get_multiplicative_unit(); // это и есть b
+                larger_char = symbolic_add(temp, symbolic_negate(borrow_bit));
+                borrow_bit = get_multiplicative_unit(); // это и есть b
             }
         }
         
@@ -211,7 +210,7 @@ BigFiniteNumber BigFiniteNumber::operator-(const BigFiniteNumber& other) const{
             }
             char diff = symbolic_add(temp, symbolic_negate(smaller_char));
             result = std::string(1, diff) + result;
-            zaem = get_multiplicative_unit();
+            borrow_bit = get_multiplicative_unit();
         }
     }
     
@@ -281,8 +280,7 @@ std::pair<BigFiniteNumber, BigFiniteNumber> BigFiniteNumber::divide(const BigFin
     BigFiniteNumber divisor_abs = BigFiniteNumber::from_internal_string(other.value, false);
 
     if (dividend_abs < divisor_abs){
-        if (this->is_negative && !other.is_negative){
-            // -a / b где |a| < |b|
+        if (this->is_negative && !other.is_negative){ // -a / b где |a| < |b|
             BigFiniteNumber minus_one = BigFiniteNumber::from_internal_string(std::string(1, get_multiplicative_unit()), true);
             BigFiniteNumber remainder = divisor_abs - dividend_abs;
             return{minus_one, remainder};
@@ -296,31 +294,30 @@ std::pair<BigFiniteNumber, BigFiniteNumber> BigFiniteNumber::divide(const BigFin
     BigFiniteNumber current_remainder = BigFiniteNumber::from_internal_string(std::string(1, get_additive_unit()), false);
     
     for (size_t i = 0; i < dividend_abs.value.length(); i++){
-        current_remainder = BigFiniteNumber::from_internal_string(
-            current_remainder.value + std::string(1, dividend_abs.value[i]), false
-        );
+        current_remainder = BigFiniteNumber::from_internal_string(current_remainder.value + std::string(1, dividend_abs.value[i]), false);
+
         current_remainder.value = normalize(current_remainder.value);
         
         char quotient_digit = get_additive_unit();
-        for (char test_digit = get_multiplicative_unit(); test_digit != get_additive_unit(); test_digit = next_symbol(test_digit)){
+        for (char test_digit = get_multiplicative_unit(); test_digit != get_additive_unit(); test_digit = next_symbol(test_digit)){ //перебираются все возможные символы системы
             BigFiniteNumber test_product = divisor_abs * BigFiniteNumber::from_internal_string(std::string(1, test_digit), false);
-            if (test_product > current_remainder) break;
+            if (test_product > current_remainder) break; // divisor * test_digit <= current_remainder
+
             quotient_digit = test_digit;
         }
         quotient_str += quotient_digit;
         if (quotient_digit != get_additive_unit()){
             BigFiniteNumber product = divisor_abs * BigFiniteNumber::from_internal_string(std::string(1, quotient_digit), false);
-            current_remainder = current_remainder - product;
+            current_remainder = current_remainder - product; // current_remainder -= divisor * quotient_digit (вычитание произведения)
         }
     }
     
     BigFiniteNumber quotient_abs = BigFiniteNumber::from_internal_string(normalize(quotient_str), false);
     
-    bool quotient_negative = (this->is_negative != other.is_negative);
+    bool quotient_negative = (this->is_negative != other.is_negative); // частное отриц если знаки разные
     BigFiniteNumber quotient = BigFiniteNumber::from_internal_string(quotient_abs.value, quotient_negative);
     BigFiniteNumber remainder = current_remainder;
     
-    // КЛЮЧЕВОЙ МОМЕНТ: Деление отрицательного на положительное
     if (this->is_negative && !other.is_negative && remainder.value != std::string(1, get_additive_unit())){
         BigFiniteNumber one = BigFiniteNumber::from_internal_string(std::string(1, get_multiplicative_unit()), false);
         quotient = quotient - one;
